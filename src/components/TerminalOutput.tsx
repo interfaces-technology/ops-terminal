@@ -104,7 +104,7 @@ interface TerminalOutputProps {
 export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutputProps) {
   const sequence = useLineSequence(dashboard, setupHint);
   const { visibleItems, visibleCount, getFillRatio, complete } = useSequentialReveal(sequence);
-  const { anchorRef, scrollToLatest } = useFollowScroll();
+  const { scrollToLatest } = useFollowScroll();
 
   useEffect(() => {
     if (complete) {
@@ -130,7 +130,6 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
         ))}
       </div>
       <TerminalActions warnings={warnings} visible={complete} />
-      <div ref={anchorRef} aria-hidden="true" className="h-px shrink-0" />
     </>
   );
 }

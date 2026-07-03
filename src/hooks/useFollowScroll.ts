@@ -11,8 +11,11 @@ function isNearBottom(): boolean {
   );
 }
 
+function scrollToPageEnd(): void {
+  window.scrollTo(0, document.documentElement.scrollHeight);
+}
+
 export function useFollowScroll() {
-  const anchorRef = useRef<HTMLDivElement>(null);
   const followRef = useRef(true);
 
   useEffect(() => {
@@ -28,9 +31,9 @@ export function useFollowScroll() {
     if (!force && !followRef.current) return;
 
     requestAnimationFrame(() => {
-      anchorRef.current?.scrollIntoView({ block: "end" });
+      scrollToPageEnd();
     });
   }, []);
 
-  return { anchorRef, scrollToLatest };
+  return { scrollToLatest };
 }
