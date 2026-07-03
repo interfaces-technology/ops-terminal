@@ -1,0 +1,34 @@
+src/app/api/auth/route.ts
+  s_42dd4f349c75b9::t_43e40ee3dd0673 1-54
+src/components/TerminalAuth.tsx
+  s_42dd4f349c75b9::t_ac95f905a84576 1-126
+src/lib/auth-server.ts
+  s_42dd4f349c75b9::t_d93485eadc2b90 1-21
+src/lib/auth.ts
+  s_42dd4f349c75b9::t_ccffc38c38a00e 1-52
+src/app/page.tsx
+  s_42dd4f349c75b9::t_781cf94abb522c 1,4
+  s_42dd4f349c75b9::t_1f6313aa6c5774 33-37
+src/lib/loader-phases.ts
+  s_42dd4f349c75b9::t_7db2b06e9c0561 1
+.env.example
+  s_42dd4f349c75b9::t_150c85ea7b5bc9 10-12
+src/middleware.ts
+  s_42dd4f349c75b9::t_084c828219d748 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "1d2aec6219de0295d8c5b82b5a7755f32e8d9561",
+  "prompts": {},
+  "sessions": {
+    "s_42dd4f349c75b9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a906aab2-b9cd-43d3-b03e-d164d78ff778",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
