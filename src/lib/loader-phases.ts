@@ -1,4 +1,4 @@
-export const LOADER_MIN_MS = 10_000;
+export const LOADER_MIN_MS = 7_500;
 export const LOADER_BOOT_MS = 2_500;
 
 export const BOOT_LINES = [

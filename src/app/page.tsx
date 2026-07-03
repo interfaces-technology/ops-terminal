@@ -1,5 +1,7 @@
+import { TerminalAuth } from "@/components/TerminalAuth";
 import { TerminalGate } from "@/components/TerminalGate";
 import { TerminalOutput } from "@/components/TerminalOutput";
+import { isAuthenticated } from "@/lib/auth-server";
 import { renderDashboardSections } from "@/lib/ascii/render";
 import { getOpsState } from "@/lib/sync/aggregate";
 import type { TerminalDashboard } from "@/types/terminal";
@@ -28,6 +30,11 @@ function emptyDashboard(message: string): TerminalDashboard {
 }
 
 export default async function Home() {
+  const authenticated = await isAuthenticated();
+  if (!authenticated) {
+    return <TerminalAuth />;
+  }
+
   let dashboard: TerminalDashboard;
   let setupHint: string | null = null;
   let warnings: string[] = [];
