@@ -34,3 +34,26 @@ pre {
 .loader-line-in {
   animation: loader-line-in 0.35s ease-out both;
 }
+
+@keyframes terminal-line-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.terminal-line-appear {
+  animation: terminal-line-appear 0.12s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-line-in,
+  .terminal-line-appear,
+  .terminal-page-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

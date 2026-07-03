@@ -1,27 +1,49 @@
-import { pad, truncate } from "@/lib/ascii/box";
+"use client";
+
+import { TerminalActions } from "@/components/TerminalActions";
+import { useLineSequence, useSequentialReveal } from "@/hooks/useSequentialReveal";
+import { pad, progressBar, truncate } from "@/lib/ascii/box";
 import type { LinkedLine, TerminalDashboard } from "@/types/terminal";
+import type { SequenceItem } from "@/lib/terminal-sequence";
 
 const WIDTH = 78;
 const INNER = WIDTH - 4;
 const LINK_LABEL = "[OPEN]";
-const LINK_SUFFIX = ` ${LINK_LABEL}`;
-const LINK_WIDTH = LINK_SUFFIX.length;
+const LINK_WIDTH = LINK_LABEL.length + 1;
 
 const linkClass =
   "font-mono text-sm text-sky-400 underline underline-offset-4 hover:text-sky-300";
 
-function TerminalRow({ line }: { line: LinkedLine }) {
+function rowText(line: LinkedLine, fillRatio: number): string {
+  if (!line.progress) return line.text;
+  const { prefix, width, suffix } = line.progress;
+  return `${prefix}${progressBar(fillRatio, width)}${suffix}`;
+}
+
+function TerminalRow({
+  line,
+  fillRatio,
+}: {
+  line: LinkedLine;
+  fillRatio: number;
+}) {
+  const content = rowText(line, fillRatio);
+
   if (!line.href) {
-    const text = pad(truncate(line.text, INNER), INNER);
-    return <div className="whitespace-pre font-mono text-sm text-green-400">{`║ ${text} ║`}</div>;
+    const text = pad(truncate(content, INNER), INNER);
+    return (
+      <div className="terminal-line-appear whitespace-pre font-mono text-sm text-green-400">
+        {`║ ${text} ║`}
+      </div>
+    );
   }
 
-  const rowText = truncate(line.text, INNER - LINK_WIDTH);
-  const padding = INNER - rowText.length - LINK_WIDTH;
+  const rowContent = truncate(content, INNER - LINK_WIDTH);
+  const padding = INNER - rowContent.length - LINK_WIDTH;
 
   return (
-    <div className="whitespace-pre font-mono text-sm leading-relaxed">
-      <span className="text-green-400">║ {rowText} </span>
+    <div className="terminal-line-appear whitespace-pre font-mono text-sm leading-relaxed">
+      <span className="text-green-400">║ {rowContent} </span>
       <a href={line.href} target="_blank" rel="noopener noreferrer" className={linkClass}>
         {LINK_LABEL}
       </a>
@@ -30,43 +52,70 @@ function TerminalRow({ line }: { line: LinkedLine }) {
   );
 }
 
-function TerminalBox({ title, lines }: { title: string; lines: LinkedLine[] }) {
-  const header = ` ${truncate(title, INNER)} `;
-  const top = "╔" + "═".repeat(WIDTH - 2) + "╗";
-  const titleRow = "║" + pad(header, WIDTH - 2) + "║";
-  const sep = "╠" + "═".repeat(WIDTH - 2) + "╣";
-  const bottom = "╚" + "═".repeat(WIDTH - 2) + "╝";
-
-  return (
-    <div className="font-mono text-sm leading-relaxed text-green-400">
-      <div className="whitespace-pre">{top}</div>
-      <div className="whitespace-pre">{titleRow}</div>
-      {lines.length > 0 && <div className="whitespace-pre">{sep}</div>}
-      {lines.map((line, index) => (
-        <TerminalRow key={`${title}-${index}`} line={line} />
-      ))}
-      <div className="whitespace-pre">{bottom}</div>
-    </div>
-  );
+function SequenceLine({
+  item,
+  index,
+  getFillRatio,
+}: {
+  item: SequenceItem;
+  index: number;
+  getFillRatio: (index: number, line: LinkedLine) => number;
+}) {
+  switch (item.type) {
+    case "header":
+      return (
+        <div className="terminal-line-appear whitespace-pre font-mono text-sm leading-relaxed text-green-400">
+          {item.text}
+        </div>
+      );
+    case "hint":
+      return (
+        <div className="terminal-line-appear mb-4 max-w-full font-mono text-xs text-amber-400">
+          {item.text}
+        </div>
+      );
+    case "spacer":
+      return <div className="terminal-line-appear mt-4" aria-hidden="true" />;
+    case "box-plain":
+      return (
+        <div className="terminal-line-appear whitespace-pre font-mono text-sm leading-relaxed text-green-400">
+          {item.text}
+        </div>
+      );
+    case "box-row":
+      return (
+        <TerminalRow line={item.line} fillRatio={getFillRatio(index, item.line)} />
+      );
+    default: {
+      const _exhaustive: never = item;
+      return _exhaustive;
+    }
+  }
 }
 
 interface TerminalOutputProps {
   dashboard: TerminalDashboard;
+  setupHint?: string | null;
+  warnings: string[];
 }
 
-export function TerminalOutput({ dashboard }: TerminalOutputProps) {
+export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutputProps) {
+  const sequence = useLineSequence(dashboard, setupHint);
+  const { visibleItems, getFillRatio, complete } = useSequentialReveal(sequence);
+
   return (
-    <div className="max-w-full overflow-x-auto">
-      {dashboard.header.lines.map((line, index) => (
-        <div key={`header-${index}`} className="whitespace-pre font-mono text-sm leading-relaxed text-green-400">
-          {line}
-        </div>
-      ))}
-      {dashboard.sections.map((section, index) => (
-        <div key={`${section.title}-${index}`} className={index === 0 ? "" : "mt-4"}>
-          <TerminalBox title={section.title} lines={section.lines} />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="max-w-full overflow-x-auto">
+        {visibleItems.map((item, index) => (
+          <SequenceLine
+            key={item.key}
+            item={item}
+            index={index}
+            getFillRatio={getFillRatio}
+          />
+        ))}
+      </div>
+      <TerminalActions warnings={warnings} visible={complete} />
+    </>
   );
 }

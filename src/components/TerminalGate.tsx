@@ -20,5 +20,5 @@ export function TerminalGate({ children }: TerminalGateProps) {
     return <TerminalLoader />;
   }
 
-  return children;
+  return <div>{children}</div>;
 }

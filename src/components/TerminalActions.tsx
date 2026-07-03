@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface TerminalActionsProps {
   warnings: string[];
+  visible?: boolean;
 }
 
 function formatWarnings(warnings: string[]): string {
@@ -17,7 +18,13 @@ function formatWarnings(warnings: string[]): string {
 const linkClass =
   "cursor-pointer border-0 bg-transparent p-0 font-mono text-sm underline underline-offset-4 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40";
 
-export function TerminalActions({ warnings }: TerminalActionsProps) {
+export function TerminalActions({ warnings, visible = true }: TerminalActionsProps) {
+  if (!visible) return null;
+
+  return <TerminalActionsPanel warnings={warnings} />;
+}
+
+function TerminalActionsPanel({ warnings }: { warnings: string[] }) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -107,7 +114,7 @@ export function TerminalActions({ warnings }: TerminalActionsProps) {
   }, [warnings.length, refresh, sync, copyWarnings]);
 
   return (
-    <div className="mt-4 w-full max-w-[78ch] font-mono text-sm">
+    <div className="terminal-line-appear mt-4 w-full max-w-[78ch] font-mono text-sm">
       <div className="grid w-full grid-cols-[1fr_max-content_max-content_max-content] items-center justify-items-start gap-8 border border-zinc-800 p-4 text-left">
         <span className="text-zinc-500">actions</span>
 

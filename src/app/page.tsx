@@ -1,4 +1,3 @@
-import { TerminalActions } from "@/components/TerminalActions";
 import { TerminalGate } from "@/components/TerminalGate";
 import { TerminalOutput } from "@/components/TerminalOutput";
 import { renderDashboardSections } from "@/lib/ascii/render";
@@ -50,11 +49,11 @@ export default async function Home() {
     <TerminalGate>
       <main className="flex min-h-screen flex-col items-center p-4 md:p-8">
         <div className="my-auto flex w-full flex-col items-center">
-          {setupHint && (
-            <p className="mb-4 max-w-full font-mono text-xs text-amber-400">{setupHint}</p>
-          )}
-          <TerminalOutput dashboard={dashboard} />
-          <TerminalActions warnings={warnings} />
+          <TerminalOutput
+            dashboard={dashboard}
+            setupHint={setupHint}
+            warnings={warnings}
+          />
         </div>
       </main>
     </TerminalGate>

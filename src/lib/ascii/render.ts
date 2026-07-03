@@ -9,6 +9,21 @@ function linked(text: string, href?: string | null): LinkedLine {
   return href ? { text, href } : { text };
 }
 
+function linkedWithProgress(
+  prefix: string,
+  ratio: number,
+  barWidth: number,
+  suffix: string,
+  href?: string | null,
+): LinkedLine {
+  const bar = progressBar(ratio, barWidth);
+  return {
+    text: `${prefix}${bar}${suffix}`,
+    href: href ?? undefined,
+    progress: { ratio, width: barWidth, prefix, suffix },
+  };
+}
+
 function formatNow(snapshot: OpsSnapshot): TerminalSection {
   const slots = [1, 2, 3].map((slotNum) => {
     const slot = snapshot.notion.now.find((s) => s.slot === slotNum);
@@ -34,9 +49,11 @@ function formatCycles(snapshot: OpsSnapshot): TerminalSection {
     const total = cycle.issueCount || 1;
     const done = cycle.completedCount;
     const pct = Math.round((done / total) * 100);
-    const bar = progressBar(done / total, 16);
-    return linked(
-      `${pad(`${cycle.teamKey} cycle ${cycle.number}`, 14)} ${bar} ${pad(String(pct) + "%", 4, "right")}  ${done}/${total}`,
+    return linkedWithProgress(
+      `${pad(`${cycle.teamKey} cycle ${cycle.number}`, 14)} `,
+      done / total,
+      16,
+      ` ${pad(String(pct) + "%", 4, "right")}  ${done}/${total}`,
     );
   });
 
@@ -47,11 +64,13 @@ function formatProjects(snapshot: OpsSnapshot): TerminalSection {
   const lines: LinkedLine[] = [];
 
   for (const project of snapshot.linear.projects) {
-    const bar = progressBar(project.progress / 100, 14);
     const budget = project.url ? 22 - OPEN_WIDTH : 22;
     lines.push(
-      linked(
-        `${pad(truncate(project.name, budget), 22)} ${bar} ${pad(String(project.progress) + "%", 4, "right")}  ${project.status}`,
+      linkedWithProgress(
+        `${pad(truncate(project.name, budget), 22)} `,
+        project.progress / 100,
+        14,
+        ` ${pad(String(project.progress) + "%", 4, "right")}  ${project.status}`,
         project.url,
       ),
     );
@@ -72,8 +91,11 @@ function summarizeIssues(issues: LinearIssue[], projectName: string): LinkedLine
   const total = filtered.length;
   if (total === 0) return linked(`${projectName}: no issues`);
   const pct = Math.round((done / total) * 100);
-  return linked(
-    `${pad(projectName, 18)} ${progressBar(done / total, 14)} ${pct}%  (${done} done · ${inProgress} active · ${todo} open)`,
+  return linkedWithProgress(
+    `${pad(projectName, 18)} `,
+    done / total,
+    14,
+    ` ${pct}%  (${done} done · ${inProgress} active · ${todo} open)`,
   );
 }
 
