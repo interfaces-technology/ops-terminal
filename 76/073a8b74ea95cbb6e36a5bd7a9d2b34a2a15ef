@@ -1,0 +1,25 @@
+src/components/TerminalAuth.tsx
+  s_1f34e3b94b85e7::t_e4c00e356d075b 113-123
+  s_1f34e3b94b85e7::t_b292ff750e750c 82-83
+  s_1f34e3b94b85e7::t_07fe368b9b17f1 20
+  s_1f34e3b94b85e7::t_8928da6d8c0ad1 56
+src/app/api/auth/route.ts
+  s_1f34e3b94b85e7::t_cd2aa196781b67 33,35,37,48,54-60
+  s_1f34e3b94b85e7::t_5f092a0c27185a 10,12,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "76073a8b74ea95cbb6e36a5bd7a9d2b34a2a15ef",
+  "prompts": {},
+  "sessions": {
+    "s_1f34e3b94b85e7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f68677ca-b409-4245-b2e9-39c53b104d61",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
