@@ -168,7 +168,7 @@ function formatHeader(snapshot: OpsSnapshot): string[] {
     timeStyle: "short",
   });
   const errors = snapshot.errors.length > 0 ? `  ⚠ ${snapshot.errors.length} sync warning(s)` : "";
-  return ["", "  OPS TERMINAL", `  synced ${synced}${errors}`, ""];
+  return ["", "OPS TERMINAL", `synced ${synced}${errors}`, ""];
 }
 
 function formatErrors(snapshot: OpsSnapshot): TerminalSection | null {

@@ -13,15 +13,15 @@ function emptyDashboard(message: string): TerminalDashboard {
     header: {
       lines: [
         "",
-        "  OPS TERMINAL",
+        "OPS TERMINAL",
         "",
-        "  ⚠  No data yet. Add API keys and sync.",
+        "⚠  No data yet. Add API keys and sync.",
         "",
-        `  ${message}`,
+        message,
         "",
-        "  1. Copy .env.example → .env.local",
-        "  2. Add LINEAR_API_KEY and NOTION_API_KEY",
-        "  3. Add API keys, then refresh — sync runs automatically",
+        "1. Copy .env.example → .env.local",
+        "2. Add LINEAR_API_KEY and NOTION_API_KEY",
+        "3. Add API keys, then refresh — sync runs automatically",
         "",
       ],
     },
@@ -54,8 +54,8 @@ export default async function Home() {
 
   return (
     <TerminalGate>
-      <main className="terminal-shell flex w-full flex-col items-center">
-        <div className="flex w-full flex-col items-center">
+      <main className="terminal-shell flex w-full flex-col items-start">
+        <div className="flex w-full flex-col items-start">
           <TerminalOutput
             dashboard={dashboard}
             setupHint={setupHint}
