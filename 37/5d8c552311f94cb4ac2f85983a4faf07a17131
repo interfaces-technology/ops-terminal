@@ -1,0 +1,48 @@
+src/components/TerminalGate.tsx
+  s_e422b4e9f1451e::t_bdde4270006793 23
+src/components/TerminalOutput.tsx
+  s_e422b4e9f1451e::t_96dbfae41fd1b8 1-5,7,12,17-31,33,35,41-42,45-46,55-58,60-62,64-68,70-93,98-99,102-103,107-119
+  s_e422b4e9f1451e::t_44d55f08b4f305 36-37,59,63,69
+  s_e422b4e9f1451e::t_fae64ebd609b68 104
+  s_e422b4e9f1451e::t_0bc253c6972f14 34
+  s_e422b4e9f1451e::t_06e25f6eb9ca3f 38
+  s_e422b4e9f1451e::t_15aaeb2875ce3e 105
+src/app/page.tsx
+  s_e422b4e9f1451e::t_c0c44b48ee2adf 52-56
+src/components/TerminalActions.tsx
+  s_e422b4e9f1451e::t_f621f84c93cf14 9
+  s_e422b4e9f1451e::t_b25248bc6ac0a7 21-27
+  s_e422b4e9f1451e::t_5aa925eda14fd4 117
+src/types/terminal.ts
+  s_e422b4e9f1451e::t_9fc4152f5e23b0 1-7,11
+src/lib/terminal-sequence.ts
+  s_e422b4e9f1451e::t_8226a0390c4013 1-63
+src/lib/ascii/render.ts
+  s_e422b4e9f1451e::t_fc4acdf67246ce 94-98
+  s_e422b4e9f1451e::t_ac8604c24d4d92 52-56
+  s_e422b4e9f1451e::t_074674cce9dfa2 12-26
+  s_e422b4e9f1451e::t_10a3480bc44aa7 69-73
+src/app/globals.css
+  s_e422b4e9f1451e::t_192335ed4ce881 37,49-52,54-59
+  s_e422b4e9f1451e::t_8c4483e19c96ea 38-48,53
+src/hooks/useSequentialReveal.ts
+  s_e422b4e9f1451e::t_3e4b2f737120e9 21,23-31
+  s_e422b4e9f1451e::t_6f489376497816 10-12
+  s_e422b4e9f1451e::t_47b2c0785d8d67 1-9,13-20,22,32-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "375d8c552311f94cb4ac2f85983a4faf07a17131",
+  "prompts": {},
+  "sessions": {
+    "s_e422b4e9f1451e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7659b2a5-1c9f-459f-b832-6871372cb7d7",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
