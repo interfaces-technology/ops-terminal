@@ -1,0 +1,21 @@
+src/components/TerminalOutput.tsx
+  s_74f0fe4d07603f::t_c0a84c48cfe49e 107
+src/hooks/useFollowScroll.ts
+  s_74f0fe4d07603f::t_b58857faf51f16 14-17,34,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "670e478ed7c8eb00a6b4a2313b00006a93eeafd2",
+  "prompts": {},
+  "sessions": {
+    "s_74f0fe4d07603f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c22174f-7fc1-4311-bec0-9190da4ff964",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
