@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #4ade80;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+::selection {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+pre {
+  tab-size: 2;
+}
