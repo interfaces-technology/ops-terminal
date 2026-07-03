@@ -1,0 +1,22 @@
+src/lib/ascii/render.ts
+  s_438b8ffc7f04e3::t_11d10d33558db6 171
+src/app/page.tsx
+  s_438b8ffc7f04e3::t_d5a6c74d83b118 16,18,20,22-24
+  s_438b8ffc7f04e3::t_3baa9130055ab1 57-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "ef47734269dea32453d771d6f70050314898f6fd",
+  "prompts": {},
+  "sessions": {
+    "s_438b8ffc7f04e3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0e0fe110-0ef3-4066-b84e-9a95d5518eef",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
