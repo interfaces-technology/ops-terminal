@@ -1,0 +1,32 @@
+.env.example
+  s_01caf263433b3c::t_8a53d47916b478 9-13
+src/lib/cache/store.ts
+  s_01caf263433b3c::t_35331c0a327bad 3-4,11,20,25-47
+package.json
+  s_01caf263433b3c::t_3cf8be216ddbdd 12
+README.md
+  s_01caf263433b3c::t_9662be80c63aab 20
+  s_01caf263433b3c::t_a37f8313848ac4 40-48
+src/lib/cache/redis.ts
+  s_01caf263433b3c::t_108dd982007957 1-17
+src/lib/config.ts
+  s_01caf263433b3c::t_2e84ed364d80c6 11
+package-lock.json
+  s_01caf263433b3c::t_8592ce43f93780 11,2218-2226,6469-6474
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "75e764841eea8c5624948708aeccf87272f8f627",
+  "prompts": {},
+  "sessions": {
+    "s_01caf263433b3c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2b553df9-51f3-4bfb-8789-4f1d82527e92",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
