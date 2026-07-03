@@ -7,15 +7,15 @@ import {
 } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const TRUSTED_DEVICE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
-function sessionCookieOptions() {
+function sessionCookieOptions(trustDevice: boolean) {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    ...(trustDevice ? { maxAge: TRUSTED_DEVICE_MAX_AGE_SECONDS } : {}),
   };
 }
 
@@ -30,9 +30,11 @@ export async function POST(request: Request) {
   }
 
   let password = "";
+  let trustDevice = false;
   try {
-    const body = (await request.json()) as { password?: string };
+    const body = (await request.json()) as { password?: string; trustDevice?: boolean };
     password = body.password?.trim() ?? "";
+    trustDevice = body.trustDevice === true;
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
@@ -43,12 +45,18 @@ export async function POST(request: Request) {
 
   const token = await createSessionToken(expected);
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(AUTH_COOKIE, token, sessionCookieOptions());
+  response.cookies.set(AUTH_COOKIE, token, sessionCookieOptions(trustDevice));
   return response;
 }
 
 export async function DELETE() {
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(AUTH_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
+  response.cookies.set(AUTH_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   return response;
 }

@@ -17,6 +17,7 @@ export function TerminalAuth() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
+  const [trustDevice, setTrustDevice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
@@ -52,7 +53,7 @@ export function TerminalAuth() {
       const response = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, trustDevice }),
       });
 
       const data = (await response.json()) as { error?: string };
@@ -78,6 +79,8 @@ export function TerminalAuth() {
   const cursor = loading ? SPINNER[frame] : cursorVisible ? "█" : " ";
   const masked = "*".repeat(password.length);
   const prompt = `  password: ${masked}${cursor}`;
+  const trustMark = trustDevice ? "x" : " ";
+  const trustLine = `  [${trustMark}] trust this device`;
   const statusLine = loading ? `  ${SPINNER[frame]} verifying credentials…` : "  › press enter to authenticate";
 
   return (
@@ -106,6 +109,17 @@ export function TerminalAuth() {
               className="absolute inset-0 cursor-text opacity-0"
             />
           </label>
+
+          <button
+            type="button"
+            onClick={() => setTrustDevice((current) => !current)}
+            disabled={loading}
+            aria-pressed={trustDevice}
+            aria-label="Trust this device"
+            className="block w-full whitespace-pre text-left text-green-500/80 transition-colors hover:text-green-400 disabled:opacity-60"
+          >
+            {`║ ${pad(trustLine, INNER)} ║`}
+          </button>
 
           <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
           <div className="whitespace-pre text-amber-400">{`║ ${pad(statusLine, INNER)} ║`}</div>
