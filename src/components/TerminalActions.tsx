@@ -116,63 +116,56 @@ function TerminalActionsPanel({ warnings, width }: { warnings: string[]; width: 
 
   return (
     <div
-      className="terminal-line-appear mt-4 w-full font-mono text-sm"
-      style={{ maxWidth: `${width}ch` }}
+      className="terminal-line-appear mt-4 box-border w-full min-w-0 font-mono text-sm"
+      style={{ width: `${width}ch`, maxWidth: "100%" }}
     >
-      <div className="flex flex-col gap-4 border border-zinc-800 p-3 sm:p-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
-          <span className="shrink-0 text-zinc-500">actions</span>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            <button
-              type="button"
-              onClick={refresh}
-              disabled={syncing}
-              className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
-            >
-              [r] refresh
-            </button>
+      <div className="box-border grid w-full min-w-0 grid-cols-[minmax(0,1fr)_max-content_max-content_max-content] grid-rows-2 items-center gap-x-2 gap-y-2 border border-zinc-800 p-4 text-left sm:gap-x-8 sm:gap-y-0">
+        <span className="text-zinc-500">actions</span>
 
-            <button
-              type="button"
-              onClick={() => void sync()}
-              disabled={syncing}
-              className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
-            >
-              {syncing ? (
-                <span className="inline-flex items-center gap-1">
-                  <span className="inline-block animate-spin" aria-hidden="true">
-                    ↻
-                  </span>
-                  syncing…
-                </span>
-              ) : (
-                "[s] sync"
-              )}
-            </button>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={syncing}
+          className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
+        >
+          [r] refresh
+        </button>
 
-            <button
-              type="button"
-              onClick={() => void copyWarnings()}
-              disabled={warnings.length === 0}
-              className={`${linkClass} text-left text-amber-400 decoration-amber-700 hover:text-amber-300`}
-            >
-              {copied ? "[c] copied" : "[c] copy warnings"}
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => void sync()}
+          disabled={syncing}
+          className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
+        >
+          {syncing ? (
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block animate-spin" aria-hidden="true">
+                ↻
+              </span>
+              syncing…
+            </span>
+          ) : (
+            "[s] sync"
+          )}
+        </button>
 
-        <div className="flex flex-col gap-1 border-t border-zinc-800 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
-          <span className="shrink-0 text-zinc-500">info</span>
-          <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
-            <span className="text-green-400">user:{TERMINAL_USER.name}</span>
-            <span className="text-green-400">role:{TERMINAL_USER.role}</span>
-            <span className="text-green-400">{TERMINAL_USER.company}</span>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => void copyWarnings()}
+          disabled={warnings.length === 0}
+          className={`${linkClass} text-left text-amber-400 decoration-amber-700 hover:text-amber-300`}
+        >
+          {copied ? "[c] copied" : "[c] copy warnings"}
+        </button>
+
+        <span className="text-zinc-500">info</span>
+        <span className="text-green-400">user:{TERMINAL_USER.name}</span>
+        <span className="text-green-400">role:{TERMINAL_USER.role}</span>
+        <span className="text-green-400">{TERMINAL_USER.company}</span>
       </div>
 
       {syncError && (
-        <p className="mt-2 max-w-full text-left font-mono text-xs text-red-400">{syncError}</p>
+        <p className="mt-2 w-full text-left font-mono text-xs text-red-400">{syncError}</p>
       )}
     </div>
   );

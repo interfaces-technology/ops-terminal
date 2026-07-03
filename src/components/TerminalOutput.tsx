@@ -128,8 +128,11 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
   }, [visibleCount, complete, scrollToLatest]);
 
   return (
-    <>
-      <div className="terminal-scroll-x max-w-full">
+    <div
+      className="mx-auto box-border w-full max-w-full font-mono text-sm"
+      style={{ width: `${width}ch` }}
+    >
+      <div className="terminal-scroll-x w-full min-w-0">
         {visibleItems.map((item, index) => (
           <SequenceLine
             key={item.key}
@@ -141,6 +144,6 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
         ))}
       </div>
       <TerminalActions warnings={warnings} visible={complete} width={width} />
-    </>
+    </div>
   );
 }
