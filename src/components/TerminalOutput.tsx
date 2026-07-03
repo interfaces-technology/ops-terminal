@@ -76,7 +76,7 @@ function SequenceLine({
       );
     case "hint":
       return (
-        <div className="terminal-line-appear mb-4 max-w-full font-mono text-xs text-amber-400">
+        <div className="terminal-line-appear mb-4 max-w-full break-words font-mono text-xs text-amber-400">
           {item.text}
         </div>
       );
@@ -129,8 +129,8 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
 
   return (
     <div
-      className="mx-auto box-border w-full max-w-full font-mono text-sm"
-      style={{ width: `${width}ch` }}
+      className="mx-auto box-border w-full min-w-0 max-w-full font-mono text-sm"
+      style={{ width: `min(100%, ${width}ch)` }}
     >
       <div className="terminal-scroll-x w-full min-w-0">
         {visibleItems.map((item, index) => (
