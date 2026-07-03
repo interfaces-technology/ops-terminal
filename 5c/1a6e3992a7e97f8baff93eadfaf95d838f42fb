@@ -1,0 +1,25 @@
+src/app/page.tsx
+  s_438b8ffc7f04e3::t_53392d39acfc1b 57-58
+src/components/TerminalActions.tsx
+  s_438b8ffc7f04e3::t_119c6514bc266d 123-164,168
+  s_438b8ffc7f04e3::t_99813eb1bfc822 119-120,122
+src/components/TerminalOutput.tsx
+  s_438b8ffc7f04e3::t_e611bdb68910ed 132,135
+  s_438b8ffc7f04e3::t_565db0be0751a3 131,133-134,147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "5c1a6e3992a7e97f8baff93eadfaf95d838f42fb",
+  "prompts": {},
+  "sessions": {
+    "s_438b8ffc7f04e3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0e0fe110-0ef3-4066-b84e-9a95d5518eef",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
