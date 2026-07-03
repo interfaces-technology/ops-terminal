@@ -1,0 +1,90 @@
+src/lib/cache/store.ts
+  s_193ce55b2ec191::t_774e1351613751 7
+  s_193ce55b2ec191::t_df697c6092f018 1-6,8-23
+src/lib/ascii/box.ts
+  s_193ce55b2ec191::t_79906e0bc2bbf6 1-37
+README.md
+  s_193ce55b2ec191::t_dbbe4627a5f117 1-66
+.gitignore
+  s_193ce55b2ec191::t_b2313fdf1620ba 35
+  s_193ce55b2ec191::t_adfecd3abd5dc8 37-39
+  s_193ce55b2ec191::t_19b0a57ef51831 32-34
+  s_193ce55b2ec191::t_1a446c540afd01 36
+  s_193ce55b2ec191::t_7fea716a6a7314 40-42
+.env.example
+  s_193ce55b2ec191::t_985338933c6d97 1-8
+src/lib/notion/parse.ts
+  s_193ce55b2ec191::t_3d43447bbbd59d 1-72
+src/lib/ascii/render.ts
+  s_193ce55b2ec191::t_e5a3aea19efd5f 1-2
+  s_193ce55b2ec191::t_589b58eec5a5c1 3-165
+src/app/globals.css
+  s_193ce55b2ec191::t_905ee74d63a157 4-20
+  s_193ce55b2ec191::t_e54562d556cb60 1-3
+  s_193ce55b2ec191::t_19b2e8f58cb898 21
+src/types/ops.ts
+  s_193ce55b2ec191::t_18be26aa9235d9 1-84
+src/app/api/sync/route.ts
+  s_193ce55b2ec191::t_fe6efce209060b 1-16
+src/lib/sync/aggregate.ts
+  s_193ce55b2ec191::t_9999b38a4becf1 1-45
+src/lib/config.ts
+  s_193ce55b2ec191::t_451a3767adaac2 1-11
+src/app/layout.tsx
+  s_193ce55b2ec191::t_5bfc42b2ee3744 2-24
+  s_193ce55b2ec191::t_65eb147cdd9275 1
+  s_193ce55b2ec191::t_79bcc9e90eeb97 25-27
+src/app/page.tsx
+  s_193ce55b2ec191::t_082c74cbf39748 1-44
+  s_193ce55b2ec191::t_b81d48cfde3ac4 45-46
+src/lib/linear/client.ts
+  s_193ce55b2ec191::t_58d7fc882a2bef 1-196
+src/components/RefreshButton.tsx
+  s_193ce55b2ec191::t_deb3edd09ba64e 1-43
+src/app/api/state/route.ts
+  s_193ce55b2ec191::t_06e19b6a25b7c1 1-15
+src/lib/notion/client.ts
+  s_193ce55b2ec191::t_28fde460e9ec25 1-151
+AGENTS.md
+  s_193ce55b2ec191::t_1601b8b67c3e3e 1-5
+CLAUDE.md
+  s_193ce55b2ec191::t_ada6ba8f6178f7 1
+eslint.config.mjs
+  s_193ce55b2ec191::t_d3ed072a0bf0c4 1-18
+next.config.ts
+  s_193ce55b2ec191::t_eae54c7c10ce17 1-7
+package-lock.json
+  s_193ce55b2ec191::t_fc188db36103f3 1-6704
+package.json
+  s_193ce55b2ec191::t_fb7ee98c63d4e6 1-26
+postcss.config.mjs
+  s_193ce55b2ec191::t_1c735e83a9c9ad 1-7
+public/file.svg
+  s_193ce55b2ec191::t_7445dbbf23670d 1
+public/globe.svg
+  s_193ce55b2ec191::t_325e7f343a1c8c 1
+public/next.svg
+  s_193ce55b2ec191::t_502d4e3860cc76 1
+public/vercel.svg
+  s_193ce55b2ec191::t_611889565e19d7 1
+public/window.svg
+  s_193ce55b2ec191::t_b9ac5f990f2607 1
+tsconfig.json
+  s_193ce55b2ec191::t_d57af6f7462a7d 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "4f51f54bffbbe860ec25367b39cfe83050536bc1",
+  "prompts": {},
+  "sessions": {
+    "s_193ce55b2ec191": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c505121b-364c-4bd9-a1ef-29c438f40412",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
