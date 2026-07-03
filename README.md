@@ -17,7 +17,7 @@ ASCII ops dashboard for [The Interfaces Company](https://github.com/interfaces-t
 - Next.js 16 (App Router)
 - Linear GraphQL API
 - Notion REST API
-- Local JSON cache (`.data/cache.json`)
+- Upstash Redis cache on Vercel (local `.data/cache.json` fallback)
 
 ## Setup
 
@@ -36,6 +36,15 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Click **`[ sync ]`** to pull fresh data.
+
+## Deploy to Vercel
+
+1. Import the repo in [Vercel](https://vercel.com/new).
+2. Add **Upstash Redis** from the Vercel Marketplace and link it to the project (sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`).
+3. Add `LINEAR_API_KEY` and `NOTION_API_KEY` in project environment variables.
+4. Deploy.
+
+Without Redis env vars, the app falls back to the local file cache (works in dev, not on Vercel serverless).
 
 ## API
 

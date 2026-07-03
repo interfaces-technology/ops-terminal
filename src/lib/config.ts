@@ -8,6 +8,7 @@ export const NOTION_DATABASES = {
 
 export const LINEAR_TEAM_KEYS = ["LAB", "PLAY"] as const;
 
+export const CACHE_KEY = "ops:snapshot";
 export const CACHE_PATH = ".data/cache.json";
 
 export const TERMINAL_USER = {
