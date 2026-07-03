@@ -9,3 +9,11 @@ export const NOTION_DATABASES = {
 export const LINEAR_TEAM_KEYS = ["LAB", "PLAY"] as const;
 
 export const CACHE_PATH = ".data/cache.json";
+
+export const TERMINAL_USER = {
+  name: "Hamza",
+  role: "Founder",
+  company: "The Interfaces Company",
+} as const;
+
+export const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;

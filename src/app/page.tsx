@@ -1,46 +1,59 @@
-import { RefreshButton } from "@/components/RefreshButton";
-import { renderDashboard } from "@/lib/ascii/render";
+import { TerminalActions } from "@/components/TerminalActions";
+import { TerminalOutput } from "@/components/TerminalOutput";
+import { renderDashboardSections } from "@/lib/ascii/render";
 import { getOpsState } from "@/lib/sync/aggregate";
+import type { TerminalDashboard } from "@/types/terminal";
 
 export const dynamic = "force-dynamic";
 
+function emptyDashboard(message: string): TerminalDashboard {
+  return {
+    header: {
+      lines: [
+        "",
+        "  OPS TERMINAL",
+        "",
+        "  ⚠  No data yet. Add API keys and sync.",
+        "",
+        `  ${message}`,
+        "",
+        "  1. Copy .env.example → .env.local",
+        "  2. Add LINEAR_API_KEY and NOTION_API_KEY",
+        "  3. Add API keys, then refresh — sync runs automatically",
+        "",
+      ],
+    },
+    sections: [],
+  };
+}
+
 export default async function Home() {
-  let output: string;
+  let dashboard: TerminalDashboard;
   let setupHint: string | null = null;
+  let warnings: string[] = [];
 
   try {
     const snapshot = await getOpsState(false);
-    output = renderDashboard(snapshot);
+    warnings = snapshot.errors;
+    dashboard = renderDashboardSections(snapshot);
     if (snapshot.errors.length > 0 && snapshot.linear.issues.length === 0) {
       setupHint = "Partial sync — check API keys in .env.local";
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load";
     setupHint = message;
-    output = [
-      "",
-      "  INTERFACES COMPANY · OPS TERMINAL",
-      "",
-      "  ⚠  No data yet. Add API keys and sync.",
-      "",
-      `  ${message}`,
-      "",
-      "  1. Copy .env.example → .env.local",
-      "  2. Add LINEAR_API_KEY and NOTION_API_KEY",
-      "  3. Click [ sync ] or POST /api/sync",
-      "",
-    ].join("\n");
+    dashboard = emptyDashboard(message);
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
-      {setupHint && (
-        <p className="mb-4 font-mono text-xs text-amber-400">{setupHint}</p>
-      )}
-      <pre className="overflow-x-auto whitespace-pre font-mono text-sm leading-relaxed text-green-400 selection:bg-green-900">
-        {output}
-      </pre>
-      <RefreshButton />
+    <main className="flex min-h-screen flex-col items-center p-4 md:p-8">
+      <div className="my-auto flex w-full flex-col items-center">
+        {setupHint && (
+          <p className="mb-4 max-w-full font-mono text-xs text-amber-400">{setupHint}</p>
+        )}
+        <TerminalOutput dashboard={dashboard} />
+        <TerminalActions warnings={warnings} />
+      </div>
     </main>
   );
 }

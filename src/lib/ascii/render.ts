@@ -1,25 +1,33 @@
 import { box, pad, progressBar, truncate } from "@/lib/ascii/box";
 import type { LinearCycle, LinearIssue, OpsSnapshot } from "@/types/ops";
+import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
 
 const WIDTH = 78;
+const OPEN_WIDTH = " [OPEN]".length;
 
-function formatNow(snapshot: OpsSnapshot): string[] {
+function linked(text: string, href?: string | null): LinkedLine {
+  return href ? { text, href } : { text };
+}
+
+function formatNow(snapshot: OpsSnapshot): TerminalSection {
   const slots = [1, 2, 3].map((slotNum) => {
     const slot = snapshot.notion.now.find((s) => s.slot === slotNum);
     if (!slot || slot.status === "Empty" || !slot.task) {
-      return `[${slotNum}] (empty)`;
+      return linked(`[${slotNum}] (empty)`);
     }
     const icon = slot.status === "Active" ? "▶" : slot.status === "Done" ? "✓" : "○";
     const product = slot.product ? ` · ${slot.product}` : "";
-    return `[${slotNum}] ${icon} ${truncate(slot.task, 48)}${product}`;
+    const budget = slot.linearUrl ? 48 - OPEN_WIDTH : 48;
+    return linked(`[${slotNum}] ${icon} ${truncate(slot.task, budget)}${product}`, slot.linearUrl);
   });
-  return box("NOW · 3 slots", slots, WIDTH);
+
+  return { title: "NOW · 3 slots", lines: slots };
 }
 
-function formatCycles(snapshot: OpsSnapshot): string[] {
+function formatCycles(snapshot: OpsSnapshot): TerminalSection {
   const current = snapshot.linear.cycles.filter((c) => c.isCurrent);
   if (current.length === 0) {
-    return box("CYCLES", ["No active cycles"], WIDTH);
+    return { title: "CYCLES", lines: [{ text: "No active cycles" }] };
   }
 
   const lines = current.map((cycle: LinearCycle) => {
@@ -27,93 +35,108 @@ function formatCycles(snapshot: OpsSnapshot): string[] {
     const done = cycle.completedCount;
     const pct = Math.round((done / total) * 100);
     const bar = progressBar(done / total, 16);
-    return `${pad(`${cycle.teamKey} cycle ${cycle.number}`, 14)} ${bar} ${pad(String(pct) + "%", 4, "right")}  ${done}/${total}`;
+    return linked(
+      `${pad(`${cycle.teamKey} cycle ${cycle.number}`, 14)} ${bar} ${pad(String(pct) + "%", 4, "right")}  ${done}/${total}`,
+    );
   });
 
-  return box("ACTIVE CYCLES · Linear", lines, WIDTH);
+  return { title: "ACTIVE CYCLES · Linear", lines };
 }
 
-function formatProjects(snapshot: OpsSnapshot): string[] {
-  const lines: string[] = [];
+function formatProjects(snapshot: OpsSnapshot): TerminalSection {
+  const lines: LinkedLine[] = [];
 
   for (const project of snapshot.linear.projects) {
     const bar = progressBar(project.progress / 100, 14);
-    lines.push(`${pad(project.name, 22)} ${bar} ${pad(String(project.progress) + "%", 4, "right")}  ${project.status}`);
+    const budget = project.url ? 22 - OPEN_WIDTH : 22;
+    lines.push(
+      linked(
+        `${pad(truncate(project.name, budget), 22)} ${bar} ${pad(String(project.progress) + "%", 4, "right")}  ${project.status}`,
+        project.url,
+      ),
+    );
   }
 
   if (lines.length === 0) {
-    lines.push("No Linear projects synced");
+    lines.push({ text: "No Linear projects synced" });
   }
 
-  return box("PROJECTS · Linear", lines, WIDTH);
+  return { title: "PROJECTS · Linear", lines };
 }
 
-function summarizeIssues(issues: LinearIssue[], projectName: string): string {
+function summarizeIssues(issues: LinearIssue[], projectName: string): LinkedLine {
   const filtered = issues.filter((i) => i.projectName === projectName);
   const done = filtered.filter((i) => i.stateType === "completed").length;
   const inProgress = filtered.filter((i) => i.stateType === "started").length;
   const todo = filtered.filter((i) => i.stateType === "unstarted" || i.stateType === "backlog").length;
   const total = filtered.length;
-  if (total === 0) return `${projectName}: no issues`;
+  if (total === 0) return linked(`${projectName}: no issues`);
   const pct = Math.round((done / total) * 100);
-  return `${pad(projectName, 18)} ${progressBar(done / total, 14)} ${pct}%  (${done} done · ${inProgress} active · ${todo} open)`;
+  return linked(
+    `${pad(projectName, 18)} ${progressBar(done / total, 14)} ${pct}%  (${done} done · ${inProgress} active · ${todo} open)`,
+  );
 }
 
-function formatWorkbench(snapshot: OpsSnapshot): string[] {
+function formatWorkbench(snapshot: OpsSnapshot): TerminalSection {
   const wbIssues = snapshot.linear.issues.filter(
     (i) => i.teamKey === "LAB" && i.projectName === "Workbench V1",
   );
   const byState = {
-    done: wbIssues.filter((i) => i.stateType === "completed").length,
-    active: wbIssues.filter((i) => i.stateType === "started").length,
     open: wbIssues.filter((i) => i.stateType !== "completed" && i.stateType !== "canceled").length,
   };
 
-  const lines = [
+  const lines: LinkedLine[] = [
     summarizeIssues(snapshot.linear.issues, "Workbench V1"),
-    `Total LAB issues: ${wbIssues.length}  ·  open leaf work: ${byState.open - 2}`,
-    "",
-    "Open (Todo / In Progress):",
+    linked(`Total LAB issues: ${wbIssues.length}  ·  open leaf work: ${byState.open - 2}`),
+    linked(""),
+    linked("Open (Todo / In Progress):"),
     ...wbIssues
       .filter((i) => i.stateType !== "completed" && i.stateType !== "canceled")
       .slice(0, 8)
-      .map((i) => `  ${i.identifier}  ${truncate(i.title, 52)}  [${i.state}]`),
+      .map((issue) => {
+        const budget = issue.url ? 52 - OPEN_WIDTH : 52;
+        return linked(
+          `  ${issue.identifier}  ${truncate(issue.title, budget)}  [${issue.state}]`,
+          issue.url,
+        );
+      }),
   ];
 
-  return box("WORKBENCH V1 · Lab", lines, WIDTH);
+  return { title: "WORKBENCH V1 · Lab", lines };
 }
 
-function formatQueue(snapshot: OpsSnapshot): string[] {
+function formatQueue(snapshot: OpsSnapshot): TerminalSection {
   const queued = snapshot.notion.workQueue
     .filter((q) => q.status === "Queued" || q.status === "In NOW")
     .slice(0, 5);
 
   if (queued.length === 0) {
-    return box("WORK QUEUE · top 5", ["Queue empty or not synced"], WIDTH);
+    return { title: "WORK QUEUE · top 5", lines: [{ text: "Queue empty or not synced" }] };
   }
 
-  const lines = queued.map((item, i) => {
+  const lines = queued.map((item, index) => {
     const product = item.product ? `[${item.product}] ` : "";
-    return `${i + 1}. ${product}${truncate(item.title, 55)}`;
+    const budget = item.linearUrl ? 55 - OPEN_WIDTH : 55;
+    return linked(`${index + 1}. ${product}${truncate(item.title, budget)}`, item.linearUrl);
   });
 
-  return box("WORK QUEUE · top 5", lines, WIDTH);
+  return { title: "WORK QUEUE · top 5", lines };
 }
 
-function formatResume(snapshot: OpsSnapshot): string[] {
+function formatResume(snapshot: OpsSnapshot): TerminalSection {
   if (snapshot.notion.resume.length === 0) {
-    return box("RESUME · by product", ["Not synced"], WIDTH);
+    return { title: "RESUME · by product", lines: [{ text: "Not synced" }] };
   }
 
   const lines = snapshot.notion.resume.flatMap((entry) => {
-    const rows = [`▸ ${entry.product}`];
-    if (entry.autoSummary) rows.push(`  now: ${truncate(entry.autoSummary, 58)}`);
-    if (entry.nextInQueue) rows.push(`  next: ${truncate(entry.nextInQueue, 57)}`);
-    if (entry.lastShipped) rows.push(`  shipped: ${truncate(entry.lastShipped, 55)}`);
+    const rows: LinkedLine[] = [linked(`▸ ${entry.product}`)];
+    if (entry.autoSummary) rows.push(linked(`  now: ${truncate(entry.autoSummary, 58)}`));
+    if (entry.nextInQueue) rows.push(linked(`  next: ${truncate(entry.nextInQueue, 57)}`));
+    if (entry.lastShipped) rows.push(linked(`  shipped: ${truncate(entry.lastShipped, 55)}`));
     return rows;
   });
 
-  return box("RESUME · by product", lines.slice(0, 12), WIDTH);
+  return { title: "RESUME · by product", lines: lines.slice(0, 12) };
 }
 
 function formatHeader(snapshot: OpsSnapshot): string[] {
@@ -122,44 +145,45 @@ function formatHeader(snapshot: OpsSnapshot): string[] {
     timeStyle: "short",
   });
   const errors = snapshot.errors.length > 0 ? `  ⚠ ${snapshot.errors.length} sync warning(s)` : "";
-  return [
-    "",
-    "  INTERFACES COMPANY · OPS TERMINAL",
-    `  synced ${synced}${errors}`,
-    "",
-  ];
+  return ["", "  OPS TERMINAL", `  synced ${synced}${errors}`, ""];
 }
 
-function formatErrors(snapshot: OpsSnapshot): string[] {
-  if (snapshot.errors.length === 0) return [];
-  return box("SYNC WARNINGS", snapshot.errors, WIDTH);
+function formatErrors(snapshot: OpsSnapshot): TerminalSection | null {
+  if (snapshot.errors.length === 0) return null;
+  return {
+    title: "SYNC WARNINGS",
+    lines: snapshot.errors.map((error) => linked(error)),
+  };
 }
 
-function formatFooter(): string[] {
-  return [
-    "",
-    "  [r] refresh   ·   POST /api/sync   ·   docs: Interfaces-Company/docs/",
-    "",
+export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboard {
+  const sections: TerminalSection[] = [
+    formatNow(snapshot),
+    formatCycles(snapshot),
+    formatProjects(snapshot),
+    formatWorkbench(snapshot),
+    formatQueue(snapshot),
+    formatResume(snapshot),
   ];
+
+  const errors = formatErrors(snapshot);
+  if (errors) sections.push(errors);
+
+  return {
+    header: { lines: formatHeader(snapshot) },
+    sections,
+  };
 }
 
 export function renderDashboard(snapshot: OpsSnapshot): string {
-  const sections = [
-    ...formatHeader(snapshot),
-    ...formatNow(snapshot),
-    "",
-    ...formatCycles(snapshot),
-    "",
-    ...formatProjects(snapshot),
-    "",
-    ...formatWorkbench(snapshot),
-    "",
-    ...formatQueue(snapshot),
-    "",
-    ...formatResume(snapshot),
-    ...formatErrors(snapshot),
-    ...formatFooter(),
-  ];
+  const { header, sections } = renderDashboardSections(snapshot);
 
-  return sections.join("\n");
+  const parts = [...header.lines];
+
+  for (const [index, section] of sections.entries()) {
+    if (index > 0) parts.push("");
+    parts.push(...box(section.title, section.lines.map((line) => line.text), WIDTH));
+  }
+
+  return parts.join("\n");
 }
