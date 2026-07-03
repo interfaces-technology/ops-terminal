@@ -28,6 +28,10 @@ interface QueryResponse {
   next_cursor: string | null;
 }
 
+const DATABASE_LABELS = Object.fromEntries(
+  Object.entries(NOTION_DATABASES).map(([name, id]) => [id, name]),
+) as Record<string, keyof typeof NOTION_DATABASES>;
+
 async function notionQuery(databaseId: string): Promise<NotionPage[]> {
   const apiKey = process.env.NOTION_API_KEY;
   if (!apiKey) {
@@ -54,7 +58,13 @@ async function notionQuery(databaseId: string): Promise<NotionPage[]> {
 
     if (!res.ok) {
       const body = await res.text();
-      throw new Error(`Notion API error (${databaseId}): ${res.status} ${body}`);
+      const label = DATABASE_LABELS[databaseId] ?? databaseId;
+      if (res.status === 404) {
+        throw new Error(
+          `Notion database "${label}" not found or not shared with your integration — open it in Notion → ••• → Connections → add "ops-terminal"`,
+        );
+      }
+      throw new Error(`Notion API error (${label}): ${res.status} ${body}`);
     }
 
     const json = (await res.json()) as QueryResponse;
