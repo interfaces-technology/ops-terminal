@@ -1,0 +1,38 @@
+src/hooks/useTerminalWidth.ts
+  s_5fe53c2770b2b9::t_8fc241c833763a 4,6,14-47,50,56-70
+src/lib/terminal-width.ts
+  s_5fe53c2770b2b9::t_874a8f48a3e28d 3,6-8,12-14
+  s_5fe53c2770b2b9::t_adbb2c438abc13 15
+src/components/TerminalActions.tsx
+  s_438b8ffc7f04e3::t_d6228755fe697f 117-164,171-172,174,177,179-180,182-184,186
+  s_5fe53c2770b2b9::t_9110431980382d 167-168,170,173,176,178
+src/components/TerminalOutput.tsx
+  s_5fe53c2770b2b9::t_18f3baff74a513 132-133
+  s_5fe53c2770b2b9::t_38c3a4b156f5db 79
+src/app/globals.css
+  s_5fe53c2770b2b9::t_73f8c716b4e8c8 80,82,84-85,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "bb7d9b764207ef6adb370b3d3cf59c95ae96a552",
+  "prompts": {},
+  "sessions": {
+    "s_438b8ffc7f04e3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0e0fe110-0ef3-4066-b84e-9a95d5518eef",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    },
+    "s_5fe53c2770b2b9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f2cd5db4-9722-432c-bfd6-8baa1fe610f7",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
