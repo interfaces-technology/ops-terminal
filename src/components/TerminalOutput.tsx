@@ -1,10 +1,12 @@
 "use client";
 
 import { TerminalActions } from "@/components/TerminalActions";
+import { useFollowScroll } from "@/hooks/useFollowScroll";
 import { useLineSequence, useSequentialReveal } from "@/hooks/useSequentialReveal";
 import { pad, progressBar, truncate } from "@/lib/ascii/box";
 import type { LinkedLine, TerminalDashboard } from "@/types/terminal";
 import type { SequenceItem } from "@/lib/terminal-sequence";
+import { useEffect } from "react";
 
 const WIDTH = 78;
 const INNER = WIDTH - 4;
@@ -101,7 +103,19 @@ interface TerminalOutputProps {
 
 export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutputProps) {
   const sequence = useLineSequence(dashboard, setupHint);
-  const { visibleItems, getFillRatio, complete } = useSequentialReveal(sequence);
+  const { visibleItems, visibleCount, getFillRatio, complete } = useSequentialReveal(sequence);
+  const { anchorRef, scrollToLatest } = useFollowScroll();
+
+  useEffect(() => {
+    if (complete) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollToLatest(true));
+      });
+      return;
+    }
+
+    scrollToLatest();
+  }, [visibleCount, complete, scrollToLatest]);
 
   return (
     <>
@@ -116,6 +130,7 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
         ))}
       </div>
       <TerminalActions warnings={warnings} visible={complete} />
+      <div ref={anchorRef} aria-hidden="true" className="h-px shrink-0" />
     </>
   );
 }

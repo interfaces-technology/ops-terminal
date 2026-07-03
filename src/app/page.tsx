@@ -47,8 +47,8 @@ export default async function Home() {
 
   return (
     <TerminalGate>
-      <main className="flex min-h-screen flex-col items-center p-4 md:p-8">
-        <div className="my-auto flex w-full flex-col items-center">
+      <main className="flex w-full flex-col items-center p-4 pt-8 md:p-8 md:pt-12">
+        <div className="flex w-full flex-col items-center">
           <TerminalOutput
             dashboard={dashboard}
             setupHint={setupHint}
