@@ -1,0 +1,30 @@
+src/lib/linear/client.ts
+  s_fb2066d8a08724::t_54215701dc6ed5 44-45,64-68,82-106,125-127,140-151,154
+  s_fb2066d8a08724::t_a85f0cf5cb1f2a 57
+  s_fb2066d8a08724::t_70400c67635b5c 29-30,32-33
+  s_fb2066d8a08724::t_16e83a66036665 118
+  s_fb2066d8a08724::t_eff2647a3c2b37 191
+  s_fb2066d8a08724::t_fc71a00bcb7b64 69
+  s_fb2066d8a08724::t_fd85ed04a21425 165-174,178-179,198-213
+  s_fb2066d8a08724::t_db4a02bd2d1ffb 152-153
+  s_fb2066d8a08724::t_9e904066785711 155
+src/lib/notion/client.ts
+  s_fb2066d8a08724::t_49a75d9928b253 61-67
+  s_fb2066d8a08724::t_a58d324067ae02 31-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "6c0b712b36fee7d78ef17ca27e399b45da531612",
+  "prompts": {},
+  "sessions": {
+    "s_fb2066d8a08724": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3499cbdc-d358-4034-be62-be075b1376dd",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
