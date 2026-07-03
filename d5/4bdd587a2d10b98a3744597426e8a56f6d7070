@@ -1,0 +1,37 @@
+src/app/page.tsx
+  s_b2a35ed2529d6d::t_438adf35cd6939 50-60
+  s_b2a35ed2529d6d::t_c115e60b4066f0 2
+src/app/loading.tsx
+  s_b2a35ed2529d6d::t_51c13067f1e092 1,4
+  s_b2a35ed2529d6d::t_ef0d1ec90f2e53 2-3,5
+src/components/TerminalSplash.tsx
+  s_b2a35ed2529d6d::t_9ae914490642bc 1-47
+src/lib/loader-phases.ts
+  s_b2a35ed2529d6d::t_d3d42a01a51877 1-28,30-34
+  s_b2a35ed2529d6d::t_9639df9d1b270f 29
+src/components/TerminalLoader.tsx
+  s_b2a35ed2529d6d::t_2aa2d947beaef6 1-2,12-18,21-31,65-66,205-206,210-211,214-218,225,230-232,235-237,241-242,251-253
+  s_b2a35ed2529d6d::t_406ff1b1096d86 3-11,34-35,38,46-47,77-199,208-209,221-224,226-229,233-234,238-240,244-250
+  s_b2a35ed2529d6d::t_5ec87e80996a6b 220
+  s_b2a35ed2529d6d::t_0db78acbbb4e84 19-20,32-33,36-37,39-45,48-64,67-76,200-204,207,212-213,219,243
+src/app/globals.css
+  s_b2a35ed2529d6d::t_84cf69ac13a00c 22-36
+src/components/TerminalGate.tsx
+  s_b2a35ed2529d6d::t_93374286318848 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "d54bdd587a2d10b98a3744597426e8a56f6d7070",
+  "prompts": {},
+  "sessions": {
+    "s_b2a35ed2529d6d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "39cf0839-a038-475a-87fc-0af40dfe95e1",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
