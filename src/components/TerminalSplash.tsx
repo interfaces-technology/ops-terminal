@@ -31,7 +31,7 @@ export function TerminalSplash() {
   const pct = `${Math.floor(progress)}%`.padStart(4);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
+    <div className="terminal-shell flex min-h-screen flex-col items-center justify-center">
       <div className="text-center font-mono">
         <h1 className="text-2xl tracking-[0.2em] text-green-400 md:text-3xl">OPS TERMINAL</h1>
         <p className="mt-3 text-xs tracking-[0.35em] text-green-500/70 uppercase">

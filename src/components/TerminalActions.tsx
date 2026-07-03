@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface TerminalActionsProps {
   warnings: string[];
   visible?: boolean;
+  width: number;
 }
 
 function formatWarnings(warnings: string[]): string {
@@ -18,13 +19,13 @@ function formatWarnings(warnings: string[]): string {
 const linkClass =
   "cursor-pointer border-0 bg-transparent p-0 font-mono text-sm underline underline-offset-4 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40";
 
-export function TerminalActions({ warnings, visible = true }: TerminalActionsProps) {
+export function TerminalActions({ warnings, visible = true, width }: TerminalActionsProps) {
   if (!visible) return null;
 
-  return <TerminalActionsPanel warnings={warnings} />;
+  return <TerminalActionsPanel warnings={warnings} width={width} />;
 }
 
-function TerminalActionsPanel({ warnings }: { warnings: string[] }) {
+function TerminalActionsPanel({ warnings, width }: { warnings: string[]; width: number }) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -114,54 +115,64 @@ function TerminalActionsPanel({ warnings }: { warnings: string[] }) {
   }, [warnings.length, refresh, sync, copyWarnings]);
 
   return (
-    <div className="terminal-line-appear mt-4 w-full max-w-[78ch] font-mono text-sm">
-      <div className="grid w-full grid-cols-[1fr_max-content_max-content_max-content] items-center justify-items-start gap-8 border border-zinc-800 p-4 text-left">
-        <span className="text-zinc-500">actions</span>
+    <div
+      className="terminal-line-appear mt-4 w-full font-mono text-sm"
+      style={{ maxWidth: `${width}ch` }}
+    >
+      <div className="flex flex-col gap-4 border border-zinc-800 p-3 sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
+          <span className="shrink-0 text-zinc-500">actions</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={syncing}
+              className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
+            >
+              [r] refresh
+            </button>
 
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={syncing}
-          className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
-        >
-          [r] refresh
-        </button>
+            <button
+              type="button"
+              onClick={() => void sync()}
+              disabled={syncing}
+              className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
+            >
+              {syncing ? (
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block animate-spin" aria-hidden="true">
+                    ↻
+                  </span>
+                  syncing…
+                </span>
+              ) : (
+                "[s] sync"
+              )}
+            </button>
 
-        <button
-          type="button"
-          onClick={() => void sync()}
-          disabled={syncing}
-          className={`${linkClass} text-left text-green-400 decoration-green-700 hover:text-green-300`}
-        >
-          {syncing ? (
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block animate-spin" aria-hidden="true">
-                ↻
-              </span>
-              syncing…
-            </span>
-          ) : (
-            "[s] sync"
-          )}
-        </button>
+            <button
+              type="button"
+              onClick={() => void copyWarnings()}
+              disabled={warnings.length === 0}
+              className={`${linkClass} text-left text-amber-400 decoration-amber-700 hover:text-amber-300`}
+            >
+              {copied ? "[c] copied" : "[c] copy warnings"}
+            </button>
+          </div>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => void copyWarnings()}
-          disabled={warnings.length === 0}
-          className={`${linkClass} text-left text-amber-400 decoration-amber-700 hover:text-amber-300`}
-        >
-          {copied ? "[c] copied" : "[c] copy warnings"}
-        </button>
-
-        <span className="text-zinc-500">info</span>
-        <span className="text-green-400">user:{TERMINAL_USER.name}</span>
-        <span className="text-green-400">role:{TERMINAL_USER.role}</span>
-        <span className="text-green-400">{TERMINAL_USER.company}</span>
+        <div className="flex flex-col gap-1 border-t border-zinc-800 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
+          <span className="shrink-0 text-zinc-500">info</span>
+          <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
+            <span className="text-green-400">user:{TERMINAL_USER.name}</span>
+            <span className="text-green-400">role:{TERMINAL_USER.role}</span>
+            <span className="text-green-400">{TERMINAL_USER.company}</span>
+          </div>
+        </div>
       </div>
 
       {syncError && (
-        <p className="mt-2 max-w-md text-left font-mono text-xs text-red-400">{syncError}</p>
+        <p className="mt-2 max-w-full text-left font-mono text-xs text-red-400">{syncError}</p>
       )}
     </div>
   );

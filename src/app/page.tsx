@@ -54,7 +54,7 @@ export default async function Home() {
 
   return (
     <TerminalGate>
-      <main className="flex w-full flex-col items-center p-4 pt-8 md:p-8 md:pt-12">
+      <main className="terminal-shell flex w-full flex-col items-center">
         <div className="flex w-full flex-col items-center">
           <TerminalOutput
             dashboard={dashboard}

@@ -97,9 +97,13 @@ export function useSequentialReveal(items: SequenceItem[]) {
   };
 }
 
-export function useLineSequence(dashboard: TerminalDashboard, setupHint?: string | null) {
+export function useLineSequence(
+  dashboard: TerminalDashboard,
+  setupHint: string | null | undefined,
+  width: number,
+) {
   return useMemo(
-    () => buildLineSequence(dashboard, setupHint),
-    [dashboard, setupHint],
+    () => buildLineSequence(dashboard, setupHint, width),
+    [dashboard, setupHint, width],
   );
 }

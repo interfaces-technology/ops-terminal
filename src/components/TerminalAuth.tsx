@@ -1,27 +1,23 @@
 "use client";
 
+import { useTerminalWidth } from "@/hooks/useTerminalWidth";
+import { terminalFrame } from "@/lib/terminal-frame";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-const WIDTH = 78;
-const INNER = WIDTH - 4;
-
 const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] as const;
-
-function pad(text: string, width: number): string {
-  if (text.length >= width) return text.slice(0, width);
-  return text + " ".repeat(width - text.length);
-}
 
 export function TerminalAuth() {
   const router = useRouter();
+  const width = useTerminalWidth();
+  const frame = terminalFrame(width);
   const inputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
   const [trustDevice, setTrustDevice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
-  const [frame, setFrame] = useState(0);
+  const [frameIndex, setFrameIndex] = useState(0);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -33,7 +29,7 @@ export function TerminalAuth() {
     }, 530);
 
     const spinnerTimer = window.setInterval(() => {
-      setFrame((current) => (current + 1) % SPINNER.length);
+      setFrameIndex((current) => (current + 1) % SPINNER.length);
     }, 80);
 
     return () => {
@@ -72,31 +68,33 @@ export function TerminalAuth() {
     }
   }
 
-  const top = "╔" + "═".repeat(WIDTH - 2) + "╗";
-  const titleRow = "║" + pad(" OPS TERMINAL — AUTH ", WIDTH - 2) + "║";
-  const sep = "╠" + "═".repeat(WIDTH - 2) + "╣";
-  const bottom = "╚" + "═".repeat(WIDTH - 2) + "╝";
-  const cursor = loading ? SPINNER[frame] : cursorVisible ? "█" : " ";
+  const cursor = loading ? SPINNER[frameIndex] : cursorVisible ? "█" : " ";
   const masked = "*".repeat(password.length);
-  const prompt = `  password: ${masked}${cursor}`;
+  const prompt = `password: ${masked}${cursor}`;
   const trustMark = trustDevice ? "x" : " ";
-  const trustLine = `  [${trustMark}] trust this device`;
-  const statusLine = loading ? `  ${SPINNER[frame]} verifying credentials…` : "  › press enter to authenticate";
+  const trustLine = `[${trustMark}] trust device`;
+  const statusLine = loading
+    ? `${SPINNER[frameIndex]} verifying…`
+    : "› press enter to auth";
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
-      <form onSubmit={(event) => void handleSubmit(event)} className="max-w-full overflow-x-auto">
+    <div className="terminal-shell relative flex min-h-screen flex-col items-center justify-center">
+      <form onSubmit={(event) => void handleSubmit(event)} className="terminal-scroll-x max-w-full">
         <div className="font-mono text-sm leading-relaxed text-green-400">
-          <div className="whitespace-pre">{top}</div>
-          <div className="whitespace-pre">{titleRow}</div>
-          <div className="whitespace-pre">{sep}</div>
-          <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
-          <div className="whitespace-pre text-green-500/80">{`║ ${pad("  › Authentication required", INNER)} ║`}</div>
-          <div className="whitespace-pre text-green-500/80">{`║ ${pad("  › Restricted ops dashboard", INNER)} ║`}</div>
-          <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
+          <div className="whitespace-pre">{frame.top}</div>
+          <div className="whitespace-pre">{frame.titleRow("OPS TERMINAL — AUTH")}</div>
+          <div className="whitespace-pre">{frame.sep}</div>
+          <div className="whitespace-pre">{frame.emptyRow()}</div>
+          <div className="whitespace-pre text-green-500/80">
+            {frame.row("› Authentication required")}
+          </div>
+          <div className="whitespace-pre text-green-500/80">
+            {frame.row("› Restricted ops dashboard")}
+          </div>
+          <div className="whitespace-pre">{frame.emptyRow()}</div>
 
           <label className="relative block whitespace-pre text-green-300">
-            {`║ ${pad(prompt, INNER - 1)}`}
+            {`║ ${prompt.padEnd(frame.inner - 1)}`}
             <span className="text-green-400">║</span>
             <input
               ref={inputRef}
@@ -118,21 +116,21 @@ export function TerminalAuth() {
             aria-label="Trust this device"
             className="block w-full whitespace-pre text-left text-green-500/80 transition-colors hover:text-green-400 disabled:opacity-60"
           >
-            {`║ ${pad(trustLine, INNER)} ║`}
+            {frame.row(trustLine)}
           </button>
 
-          <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
-          <div className="whitespace-pre text-amber-400">{`║ ${pad(statusLine, INNER)} ║`}</div>
+          <div className="whitespace-pre">{frame.emptyRow()}</div>
+          <div className="whitespace-pre text-amber-400">{frame.row(statusLine)}</div>
 
           {error && (
             <>
-              <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
-              <div className="whitespace-pre text-red-400">{`║ ${pad(`  ✗ ${error}`, INNER)} ║`}</div>
+              <div className="whitespace-pre">{frame.emptyRow()}</div>
+              <div className="whitespace-pre text-red-400">{frame.row(`✗ ${error}`)}</div>
             </>
           )}
 
-          <div className="whitespace-pre">{`║ ${pad("", INNER)} ║`}</div>
-          <div className="whitespace-pre">{bottom}</div>
+          <div className="whitespace-pre">{frame.emptyRow()}</div>
+          <div className="whitespace-pre">{frame.bottom}</div>
         </div>
       </form>
     </div>

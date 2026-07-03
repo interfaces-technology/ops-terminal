@@ -3,13 +3,13 @@
 import { TerminalActions } from "@/components/TerminalActions";
 import { useFollowScroll } from "@/hooks/useFollowScroll";
 import { useLineSequence, useSequentialReveal } from "@/hooks/useSequentialReveal";
+import { useTerminalWidth } from "@/hooks/useTerminalWidth";
 import { pad, progressBar, truncate } from "@/lib/ascii/box";
+import { terminalInner } from "@/lib/terminal-width";
 import type { LinkedLine, TerminalDashboard } from "@/types/terminal";
 import type { SequenceItem } from "@/lib/terminal-sequence";
 import { useEffect } from "react";
 
-const WIDTH = 78;
-const INNER = WIDTH - 4;
 const LINK_LABEL = "[OPEN]";
 const LINK_WIDTH = LINK_LABEL.length + 1;
 
@@ -25,14 +25,16 @@ function rowText(line: LinkedLine, fillRatio: number): string {
 function TerminalRow({
   line,
   fillRatio,
+  inner,
 }: {
   line: LinkedLine;
   fillRatio: number;
+  inner: number;
 }) {
   const content = rowText(line, fillRatio);
 
   if (!line.href) {
-    const text = pad(truncate(content, INNER), INNER);
+    const text = pad(truncate(content, inner), inner);
     return (
       <div className="terminal-line-appear whitespace-pre font-mono text-sm text-green-400">
         {`║ ${text} ║`}
@@ -40,8 +42,8 @@ function TerminalRow({
     );
   }
 
-  const rowContent = truncate(content, INNER - LINK_WIDTH);
-  const padding = INNER - rowContent.length - LINK_WIDTH;
+  const rowContent = truncate(content, inner - LINK_WIDTH);
+  const padding = inner - rowContent.length - LINK_WIDTH;
 
   return (
     <div className="terminal-line-appear whitespace-pre font-mono text-sm leading-relaxed">
@@ -57,10 +59,12 @@ function TerminalRow({
 function SequenceLine({
   item,
   index,
+  inner,
   getFillRatio,
 }: {
   item: SequenceItem;
   index: number;
+  inner: number;
   getFillRatio: (index: number, line: LinkedLine) => number;
 }) {
   switch (item.type) {
@@ -86,7 +90,11 @@ function SequenceLine({
       );
     case "box-row":
       return (
-        <TerminalRow line={item.line} fillRatio={getFillRatio(index, item.line)} />
+        <TerminalRow
+          line={item.line}
+          fillRatio={getFillRatio(index, item.line)}
+          inner={inner}
+        />
       );
     default: {
       const _exhaustive: never = item;
@@ -102,7 +110,9 @@ interface TerminalOutputProps {
 }
 
 export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutputProps) {
-  const sequence = useLineSequence(dashboard, setupHint);
+  const width = useTerminalWidth();
+  const inner = terminalInner(width);
+  const sequence = useLineSequence(dashboard, setupHint, width);
   const { visibleItems, visibleCount, getFillRatio, complete } = useSequentialReveal(sequence);
   const { scrollToLatest } = useFollowScroll();
 
@@ -119,17 +129,18 @@ export function TerminalOutput({ dashboard, setupHint, warnings }: TerminalOutpu
 
   return (
     <>
-      <div className="max-w-full overflow-x-auto">
+      <div className="terminal-scroll-x max-w-full">
         {visibleItems.map((item, index) => (
           <SequenceLine
             key={item.key}
             item={item}
             index={index}
+            inner={inner}
             getFillRatio={getFillRatio}
           />
         ))}
       </div>
-      <TerminalActions warnings={warnings} visible={complete} />
+      <TerminalActions warnings={warnings} visible={complete} width={width} />
     </>
   );
 }

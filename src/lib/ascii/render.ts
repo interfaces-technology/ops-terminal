@@ -1,8 +1,9 @@
 import { box, pad, progressBar, truncate } from "@/lib/ascii/box";
+import { TERMINAL_WIDTH_DESKTOP } from "@/lib/terminal-width";
 import type { LinearCycle, LinearIssue, OpsSnapshot } from "@/types/ops";
 import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
 
-const WIDTH = 78;
+const WIDTH = TERMINAL_WIDTH_DESKTOP;
 const OPEN_WIDTH = " [OPEN]".length;
 
 function linked(text: string, href?: string | null): LinkedLine {
