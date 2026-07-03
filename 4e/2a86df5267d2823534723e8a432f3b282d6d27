@@ -1,0 +1,34 @@
+src/components/TerminalOutput.tsx
+  s_e422b4e9f1451e::t_8e70e2578da04b 9
+  s_e422b4e9f1451e::t_d418af5e44bbed 106,109,117-118
+  s_e422b4e9f1451e::t_8f81d32548e024 4
+  s_e422b4e9f1451e::t_a88e185e79d684 107,110,114-116
+  s_e422b4e9f1451e::t_aa6355b7fa2014 111-113
+  s_e422b4e9f1451e::t_73e61150e9956d 133
+  s_e422b4e9f1451e::t_dd0688c809ecc9 108
+src/app/globals.css
+  s_e422b4e9f1451e::t_98f520de9b995f 8-17,23-24,27-28
+  s_e422b4e9f1451e::t_8acf38cac9c0ae 22,25-26
+src/hooks/useFollowScroll.ts
+  s_e422b4e9f1451e::t_700b3dc6062a59 14,25-33
+  s_e422b4e9f1451e::t_184e68dc697a91 1-13,15-24,34-36
+src/app/page.tsx
+  s_e422b4e9f1451e::t_61d5edd1a76242 50
+  s_e422b4e9f1451e::t_f719ba052b9441 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "4e2a86df5267d2823534723e8a432f3b282d6d27",
+  "prompts": {},
+  "sessions": {
+    "s_e422b4e9f1451e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7659b2a5-1c9f-459f-b832-6871372cb7d7",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
