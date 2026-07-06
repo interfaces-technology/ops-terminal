@@ -64,7 +64,7 @@ function resolveDisplayLabel(line: LinkedLine, leftZone: number): string {
   return truncate(line.progress!.label, leftZone);
 }
 
-/** Lay out label left, fixed column grid right: % | bar (2-col) | status. */
+/** Lay out label left, fixed column grid right: bar (2-col) | % | status. */
 export function formatRowBody(line: LinkedLine, fillRatio: number, inner: number): string {
   const usable = inner;
 

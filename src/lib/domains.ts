@@ -1,4 +1,4 @@
-import { findLinearProject } from "@/lib/sync/match";
+import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
 import type { LinearProject, LinearTeamStats, NotionProject, OpsSnapshot } from "@/types/ops";
 
 export interface OpsDomain {
@@ -10,7 +10,7 @@ export interface OpsDomain {
 
 export const OPS_DOMAINS: OpsDomain[] = [
   { id: "company", label: "Company", notionTags: ["company", "pipeline"], linearTeamKey: null },
-  { id: "labs", label: "Labs", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
+  { id: "labs", label: "Lab", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
   { id: "play", label: "Play", notionTags: ["play"], linearTeamKey: "PLAY" },
   { id: "workbench", label: "Workbench", notionTags: ["workbench"], linearTeamKey: "WOR" },
 ];
@@ -109,4 +109,37 @@ export function domainProjectCounts(
   }
 
   return counts;
+}
+
+/** Average combined Notion + Linear progress across all projects listed in a domain. */
+export function domainProgressRatio(domain: OpsDomain, snapshot: OpsSnapshot): number {
+  const progresses: number[] = [];
+
+  for (const notionProject of notionProjectsForDomain(domain, snapshot.notionProjects)) {
+    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
+    progresses.push(resolveProjectProgress(notionProject, linearProject).ratio);
+  }
+
+  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
+    progresses.push(resolveProjectProgress(null, linearProject).ratio);
+  }
+
+  if (progresses.length === 0) return 0;
+  return progresses.reduce((sum, ratio) => sum + ratio, 0) / progresses.length;
+}
+
+/** Strip a leading domain label/tag from a project name for display under that domain. */
+export function displayProjectName(domain: OpsDomain, rawName: string): string {
+  const name = rawName.trim();
+  const prefixes = new Set<string>([domain.label, ...domain.notionTags]);
+  if (domain.linearTeamKey) prefixes.add(domain.linearTeamKey);
+
+  for (const prefix of prefixes) {
+    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`^${escaped}(?:\\s*[—\\-·:]\\s*|\\s+)`, "i");
+    const stripped = name.replace(pattern, "").trim();
+    if (stripped && stripped !== name) return stripped;
+  }
+
+  return name;
 }

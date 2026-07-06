@@ -1,8 +1,12 @@
 import { NOTION_DATABASES } from "@/lib/config";
 import { fetchFocusPage } from "@/lib/notion/focus";
+import { isEligibleForFocus } from "@/lib/sync/focus";
 import {
   getDate,
+  getFormulaNumber,
+  getNumber,
   getRichText,
+  getRollupNumber,
   getSelect,
   getStatus,
   getTitle,
@@ -11,14 +15,17 @@ import {
 import type {
   NotionFocus,
   NotionHorizonItem,
+  NotionMilestone,
   NotionProject,
   NotionShipLogEntry,
+  NotionSprint,
 } from "@/types/ops";
 
 import { NOTION_API, notionHeaders } from "@/lib/notion/auth";
 
 interface NotionPage {
   id: string;
+  url?: string;
   properties: Record<string, Record<string, unknown>>;
 }
 
@@ -106,6 +113,11 @@ async function fetchProjects(): Promise<NotionProject[]> {
         linearUrl: getUrl(props, "Linear project", "Linear"),
         priority: getSelect(props, "Priority"),
         target: getDate(props, "End date", "Target", "Due", "Start date"),
+        progress: normalizeProgressPercent(
+          getFormulaNumber(props, "Progress %", "Progress") ??
+            getRollupNumber(props, "Progress %", "Progress") ??
+            getNumber(props, "Progress %", "Progress"),
+        ),
       };
     })
     .filter((project) => project.name !== "(untitled)");
@@ -153,10 +165,70 @@ async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
   });
 }
 
+function normalizeProgressPercent(value: number | null): number | null {
+  if (value == null) return null;
+  if (value <= 1) return Math.round(value * 100);
+  return Math.round(value);
+}
+
+async function fetchMilestones(): Promise<NotionMilestone[]> {
+  const pages = await notionQuery(NOTION_DATABASES.milestones);
+
+  return pages
+    .map((page) => {
+      const props = page.properties;
+      const status = getStatus(props, "Status");
+      const name = getTitle(props, "Milestone", "Name", "Title") ?? "(untitled)";
+      if (!isEligibleForFocus({ name, status })) return null;
+
+      return {
+        name,
+        status: status ?? "—",
+        product: getSelect(props, "Product"),
+        url: page.url ?? `https://notion.so/${page.id.replace(/-/g, "")}`,
+        targetDate: getDate(props, "Target date", "Target", "Due"),
+        progress: normalizeProgressPercent(getFormulaNumber(props, "Progress %", "Progress")),
+      };
+    })
+    .filter((milestone): milestone is NotionMilestone => milestone !== null);
+}
+
+const ACTIVE_SPRINT_STATUSES = new Set(["Current", "Next", "Future"]);
+
+async function fetchSprints(): Promise<NotionSprint[]> {
+  const pages = await notionQuery(NOTION_DATABASES.sprints);
+
+  return pages
+    .map((page) => {
+      const props = page.properties;
+      const status = getStatus(props, "Sprint status", "Status");
+      if (!status || !ACTIVE_SPRINT_STATUSES.has(status)) return null;
+
+      const name = getTitle(props, "Sprint name", "Name", "Title") ?? "(untitled)";
+      if (!isEligibleForFocus({ name, status })) return null;
+
+      const date = props.Dates as { type?: string; date?: { start?: string; end?: string } } | undefined;
+      const startDate = date?.type === "date" ? (date.date?.start ?? null) : getDate(props, "Dates", "Start date");
+      const endDate = date?.type === "date" ? (date.date?.end ?? null) : null;
+
+      return {
+        name,
+        status,
+        url: page.url ?? `https://notion.so/${page.id.replace(/-/g, "")}`,
+        startDate,
+        endDate,
+        progress: normalizeProgressPercent(getRollupNumber(props, "Completed tasks")),
+      };
+    })
+    .filter((sprint): sprint is NotionSprint => sprint !== null);
+}
+
 export async function fetchNotionData(): Promise<{
   focus: NotionFocus;
   horizon: NotionHorizonItem[];
   notionProjects: NotionProject[];
+  notionMilestones: NotionMilestone[];
+  notionSprints: NotionSprint[];
   shipLog: NotionShipLogEntry[];
   errors: string[];
 }> {
@@ -167,10 +239,19 @@ export async function fetchNotionData(): Promise<{
     thisWeek: null,
   };
 
-  const [focusResult, horizonResult, projectsResult, shipLogResult] = await Promise.allSettled([
+  const [
+    focusResult,
+    horizonResult,
+    projectsResult,
+    milestonesResult,
+    sprintsResult,
+    shipLogResult,
+  ] = await Promise.allSettled([
     fetchFocusPage(),
     fetchHorizon(),
     fetchProjects(),
+    fetchMilestones(),
+    fetchSprints(),
     fetchShipLog(),
   ]);
 
@@ -184,12 +265,16 @@ export async function fetchNotionData(): Promise<{
   label(focusResult, "Focus");
   label(horizonResult, "Horizon");
   label(projectsResult, "Projects");
+  label(milestonesResult, "Milestones");
+  label(sprintsResult, "Sprints");
   label(shipLogResult, "Ship Log");
 
   return {
     focus: focusResult.status === "fulfilled" ? focusResult.value : emptyFocus,
     horizon: horizonResult.status === "fulfilled" ? horizonResult.value : [],
     notionProjects: projectsResult.status === "fulfilled" ? projectsResult.value : [],
+    notionMilestones: milestonesResult.status === "fulfilled" ? milestonesResult.value : [],
+    notionSprints: sprintsResult.status === "fulfilled" ? sprintsResult.value : [],
     shipLog: shipLogResult.status === "fulfilled" ? shipLogResult.value : [],
     errors,
   };

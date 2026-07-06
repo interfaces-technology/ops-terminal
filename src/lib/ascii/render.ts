@@ -1,5 +1,6 @@
-import { box, pad, truncate } from "@/lib/ascii/box";
+import { box, pad } from "@/lib/ascii/box";
 import { formatProjectsByDomain } from "@/lib/ascii/projects";
+import { OPS_DOMAINS } from "@/lib/domains";
 import { formatRowText, linked, linkedWithProgress } from "@/lib/ascii/line";
 import { TERMINAL_WIDTH_DESKTOP, terminalInner } from "@/lib/terminal-width";
 import type { OpsSnapshot } from "@/types/ops";
@@ -29,25 +30,18 @@ function formatFocus(snapshot: OpsSnapshot): TerminalSection {
       return linked(`[${slotNum}] (empty)`);
     }
 
-    const area = slot.area ? ` · ${slot.area}` : "";
-
-    if (slot.progress == null) {
-      const statusSuffix = slot.linearState ? `  [${slot.linearState}]` : "";
-      return linked(`[${slotNum}] ▶ ${slot.label}${area}${statusSuffix}`, slot.url);
-    }
-
     return linkedWithProgress(
       `[${slotNum}] ▶ `,
       slot.label,
-      area,
-      slot.progress / 100,
+      "",
+      (slot.progress ?? 0) / 100,
       slot.progress,
-      slot.linearState ?? "",
+      slot.linearState ?? "—",
       slot.url,
     );
   });
 
-  return { title: "FOCUS · 3 slots", lines: slots };
+  return { title: "FOCUS · milestones & sprints", lines: slots };
 }
 
 function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
@@ -66,21 +60,10 @@ function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
 }
 
 function formatProjects(snapshot: OpsSnapshot): TerminalSection {
+  const domainLabels = OPS_DOMAINS.map((domain) => domain.label).join(" · ");
   return {
-    title: "PROJECTS · Company · Labs · Play · Workbench",
+    title: `DOMAINS · ${domainLabels}`,
     lines: formatProjectsByDomain(snapshot),
-  };
-}
-
-function formatLastSession(snapshot: OpsSnapshot): TerminalSection {
-  const text = snapshot.focus.lastSession?.trim();
-  if (!text) {
-    return { title: "LAST SESSION", lines: [{ text: "Empty — update Focus in Notion" }] };
-  }
-
-  return {
-    title: "LAST SESSION",
-    lines: [linked(truncate(text, INNER))],
   };
 }
 
@@ -126,7 +109,6 @@ export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboar
     formatFocus(snapshot),
     formatHorizon(snapshot),
     formatProjects(snapshot),
-    formatLastSession(snapshot),
     formatShipLog(snapshot),
   ];
 

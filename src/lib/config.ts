@@ -3,6 +3,7 @@ export const NOTION_DATABASES = {
   milestones: "bdcdf3e3-e319-83a2-ad73-07bfb746a827",
   projects: "9ccdf3e3-e319-8394-bbb5-87d84f8e2fb5",
   shipLog: "29f3e759-1238-4e0b-afac-a32c26ed0d10",
+  sprints: "395df3e3-e319-80c6-b0e6-000b875c4f64",
 } as const;
 
 /** Company → Focus daily page (solo mode — blocks, not a database). */
@@ -11,7 +12,7 @@ export const NOTION_FOCUS_PAGE_ID = "395df3e3-e319-81db-8965-ccf0a2b0d7f6";
 export const LINEAR_TEAM_KEYS = ["LAB", "PLAY", "WOR"] as const;
 
 /** Bump when snapshot shape or Notion/Linear sources change (invalidates Redis/file cache). */
-export const CACHE_KEY = "ops:snapshot:v5";
+export const CACHE_KEY = "ops:snapshot:v8";
 export const CACHE_PATH = ".data/cache.json";
 
 export const TERMINAL_USER = {

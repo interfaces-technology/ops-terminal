@@ -1,8 +1,8 @@
 import { readCache, writeCache } from "@/lib/cache/store";
 import { fetchLinearData } from "@/lib/linear/client";
-import { fetchNotionData, isActiveNotionProject } from "@/lib/notion/client";
-import { buildFocusSlots, rankProjectsForFocus } from "@/lib/sync/focus";
-import type { OpsSnapshot } from "@/types/ops";
+import { fetchNotionData } from "@/lib/notion/client";
+import { buildFocusSlots } from "@/lib/sync/focus";
+import type { NotionMilestone, NotionSprint, OpsSnapshot } from "@/types/ops";
 
 function emptySnapshot(): OpsSnapshot {
   return {
@@ -11,7 +11,7 @@ function emptySnapshot(): OpsSnapshot {
     horizon: [],
     notionProjects: [],
     shipLog: [],
-    linear: { issues: [], projects: [], byTeam: [] },
+    linear: { issues: [], projects: [], milestones: [], byTeam: [] },
     errors: [],
   };
 }
@@ -19,6 +19,8 @@ function emptySnapshot(): OpsSnapshot {
 export async function syncOpsState(): Promise<OpsSnapshot> {
   const snapshot = emptySnapshot();
   let focusNarrative = { lastSession: null as string | null, notes: null as string | null, thisWeek: null as string | null };
+  let notionMilestones: NotionMilestone[] = [];
+  let notionSprints: NotionSprint[] = [];
 
   await Promise.all([
     fetchLinearData()
@@ -33,6 +35,8 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
         snapshot.horizon = data.horizon;
         snapshot.notionProjects = data.notionProjects;
         snapshot.shipLog = data.shipLog;
+        notionMilestones = data.notionMilestones;
+        notionSprints = data.notionSprints;
         focusNarrative = {
           lastSession: data.focus.lastSession,
           notes: data.focus.notes,
@@ -47,12 +51,8 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
       }),
   ]);
 
-  const activeProjects = rankProjectsForFocus(
-    snapshot.notionProjects.filter(isActiveNotionProject),
-  );
-
   snapshot.focus = {
-    slots: buildFocusSlots(activeProjects, snapshot.linear.projects),
+    slots: buildFocusSlots(snapshot.linear.milestones, notionMilestones, notionSprints),
     ...focusNarrative,
   };
 
@@ -65,7 +65,8 @@ function isValidSnapshot(snapshot: OpsSnapshot): boolean {
     snapshot.focus != null &&
     Array.isArray(snapshot.horizon) &&
     Array.isArray(snapshot.notionProjects) &&
-    snapshot.linear?.byTeam != null
+    snapshot.linear?.byTeam != null &&
+    Array.isArray(snapshot.linear.milestones)
   );
 }
 

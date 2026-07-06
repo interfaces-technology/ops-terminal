@@ -1,5 +1,16 @@
 export type Product = "Play" | "Workbench" | "Labs" | "Company";
 
+export interface LinearMilestone {
+  id: string;
+  name: string;
+  status: string;
+  progress: number;
+  targetDate: string | null;
+  projectName: string;
+  projectUrl: string;
+  teamKey: string;
+}
+
 export interface LinearIssue {
   id: string;
   identifier: string;
@@ -38,6 +49,25 @@ export interface NotionFocusSlot {
   linearIdentifier: string | null;
   linearState: string | null;
   progress: number | null;
+  kind: "milestone" | "sprint";
+}
+
+export interface NotionMilestone {
+  name: string;
+  status: string;
+  product: string | null;
+  url: string;
+  targetDate: string | null;
+  progress: number | null;
+}
+
+export interface NotionSprint {
+  name: string;
+  status: string;
+  url: string;
+  startDate: string | null;
+  endDate: string | null;
+  progress: number | null;
 }
 
 export interface NotionFocus {
@@ -64,6 +94,7 @@ export interface NotionProject {
   linearUrl: string | null;
   priority: string | null;
   target: string | null;
+  progress: number | null;
 }
 
 export interface NotionShipLogEntry {
@@ -83,6 +114,7 @@ export interface OpsSnapshot {
   linear: {
     issues: LinearIssue[];
     projects: LinearProject[];
+    milestones: LinearMilestone[];
     byTeam: LinearTeamStats[];
   };
   errors: string[];
