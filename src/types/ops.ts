@@ -8,22 +8,10 @@ export interface LinearIssue {
   stateType: string;
   team: string;
   teamKey: string;
-  cycleNumber: number | null;
+  milestoneName: string | null;
   projectName: string | null;
   priority: number;
   url: string;
-}
-
-export interface LinearCycle {
-  id: string;
-  number: number;
-  team: string;
-  teamKey: string;
-  startsAt: string;
-  endsAt: string;
-  isCurrent: boolean;
-  issueCount: number;
-  completedCount: number;
 }
 
 export interface LinearProject {
@@ -35,50 +23,62 @@ export interface LinearProject {
   url: string;
 }
 
-export interface NotionNowSlot {
+export interface LinearTeamStats {
+  teamKey: string;
+  todo: number;
+  inProgress: number;
+  done: number;
+}
+
+export interface NotionFocusSlot {
   slot: 1 | 2 | 3;
-  status: "Empty" | "Active" | "Done" | string;
-  task: string | null;
-  product: string | null;
-  source: string | null;
-  linearUrl: string | null;
+  label: string;
+  area: string | null;
+  url: string | null;
+  linearIdentifier: string | null;
+  linearState: string | null;
 }
 
-export interface NotionQueueItem {
-  title: string;
-  product: string | null;
-  source: string | null;
-  status: string | null;
-  priority: number | null;
-  linearUrl: string | null;
+export interface NotionFocus {
+  slots: NotionFocusSlot[];
+  lastSession: string | null;
+  notes: string | null;
+  thisWeek: string | null;
 }
 
-export interface NotionResumeEntry {
-  product: string;
-  autoSummary: string | null;
-  nextInQueue: string | null;
-  completedToday: string | null;
-  lastShipped: string | null;
+export interface NotionHorizonItem {
+  aim: string;
+  area: string | null;
+  target: string | null;
+  linearInitiativeUrl: string | null;
 }
 
 export interface NotionProject {
   name: string;
   product: string | null;
+  phase: string | null;
+  outcome: string | null;
+  linearUrl: string | null;
+}
+
+export interface NotionShipLogEntry {
+  title: string;
+  product: string | null;
+  date: string | null;
+  summary: string | null;
   linearUrl: string | null;
 }
 
 export interface OpsSnapshot {
   syncedAt: string;
+  focus: NotionFocus;
+  horizon: NotionHorizonItem[];
+  notionProjects: NotionProject[];
+  shipLog: NotionShipLogEntry[];
   linear: {
     issues: LinearIssue[];
-    cycles: LinearCycle[];
     projects: LinearProject[];
-  };
-  notion: {
-    now: NotionNowSlot[];
-    workQueue: NotionQueueItem[];
-    resume: NotionResumeEntry[];
-    projects: NotionProject[];
+    byTeam: LinearTeamStats[];
   };
   errors: string[];
 }

@@ -1,6 +1,6 @@
 import { box, pad, progressBar, truncate } from "@/lib/ascii/box";
 import { TERMINAL_WIDTH_DESKTOP } from "@/lib/terminal-width";
-import type { LinearCycle, LinearIssue, OpsSnapshot } from "@/types/ops";
+import type { LinearProject, NotionProject, OpsSnapshot } from "@/types/ops";
 import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
 
 const WIDTH = TERMINAL_WIDTH_DESKTOP;
@@ -25,141 +25,134 @@ function linkedWithProgress(
   };
 }
 
-function formatNow(snapshot: OpsSnapshot): TerminalSection {
-  const slots = [1, 2, 3].map((slotNum) => {
-    const slot = snapshot.notion.now.find((s) => s.slot === slotNum);
-    if (!slot || slot.status === "Empty" || !slot.task) {
-      return linked(`[${slotNum}] (empty)`);
-    }
-    const icon = slot.status === "Active" ? "▶" : slot.status === "Done" ? "✓" : "○";
-    const product = slot.product ? ` · ${slot.product}` : "";
-    const budget = slot.linearUrl ? 48 - OPEN_WIDTH : 48;
-    return linked(`[${slotNum}] ${icon} ${truncate(slot.task, budget)}${product}`, slot.linearUrl);
-  });
-
-  return { title: "NOW · 3 slots", lines: slots };
+function formatTargetDate(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 }
 
-function formatCycles(snapshot: OpsSnapshot): TerminalSection {
-  const current = snapshot.linear.cycles.filter((c) => c.isCurrent);
-  if (current.length === 0) {
-    return { title: "CYCLES", lines: [{ text: "No active cycles" }] };
+function formatShipDate(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+function findLinearProject(
+  notionProject: NotionProject,
+  linearProjects: LinearProject[],
+): LinearProject | undefined {
+  if (notionProject.linearUrl) {
+    const match = linearProjects.find((project) => project.url === notionProject.linearUrl);
+    if (match) return match;
   }
 
-  const lines = current.map((cycle: LinearCycle) => {
-    const total = cycle.issueCount || 1;
-    const done = cycle.completedCount;
-    const pct = Math.round((done / total) * 100);
-    return linkedWithProgress(
-      `${pad(`${cycle.teamKey} cycle ${cycle.number}`, 14)} `,
-      done / total,
-      16,
-      ` ${pad(String(pct) + "%", 4, "right")}  ${done}/${total}`,
-    );
-  });
-
-  return { title: "ACTIVE CYCLES · Linear", lines };
+  const normalizedName = notionProject.name.toLowerCase();
+  return linearProjects.find((project) => project.name.toLowerCase() === normalizedName);
 }
 
-function formatProjects(snapshot: OpsSnapshot): TerminalSection {
+function formatFocus(snapshot: OpsSnapshot): TerminalSection {
+  const slots = [1, 2, 3].map((slotNum) => {
+    const slot = snapshot.focus.slots.find((entry) => entry.slot === slotNum);
+    if (!slot?.label) {
+      return linked(`[${slotNum}] (empty)`);
+    }
+
+    const stateSuffix = slot.linearState ? `  [${slot.linearState}]` : "";
+    const area = slot.area ? ` · ${slot.area}` : "";
+    const budget = slot.url ? 44 - OPEN_WIDTH - stateSuffix.length : 44 - stateSuffix.length;
+    const label = truncate(slot.label, Math.max(12, budget));
+    return linked(`[${slotNum}] ▶ ${label}${area}${stateSuffix}`, slot.url);
+  });
+
+  return { title: "FOCUS · 3 slots", lines: slots };
+}
+
+function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
+  if (snapshot.horizon.length === 0) {
+    return { title: "HORIZON · Now", lines: [{ text: "No committed aims (Status: Now)" }] };
+  }
+
+  const lines = snapshot.horizon.map((item) => {
+    const target = formatTargetDate(item.target);
+    const targetText = target ? pad(target, 12, "right") : pad("", 12);
+    const area = item.area ? ` · ${item.area}` : "";
+    const budget = item.linearInitiativeUrl ? 34 - OPEN_WIDTH : 34;
+    const aim = truncate(item.aim, budget);
+    return linked(`${aim}${area}  ${targetText}`, item.linearInitiativeUrl);
+  });
+
+  return { title: "HORIZON · Now", lines };
+}
+
+function formatActiveProjects(snapshot: OpsSnapshot): TerminalSection {
   const lines: LinkedLine[] = [];
 
-  for (const project of snapshot.linear.projects) {
-    const budget = project.url ? 22 - OPEN_WIDTH : 22;
+  for (const project of snapshot.notionProjects) {
+    const linearProject = findLinearProject(project, snapshot.linear.projects);
+    const href = linearProject?.url ?? project.linearUrl;
+    const progress = linearProject?.progress ?? 0;
+    const budget = href ? 22 - OPEN_WIDTH : 22;
+
     lines.push(
       linkedWithProgress(
         `${pad(truncate(project.name, budget), 22)} `,
-        project.progress / 100,
+        progress / 100,
         14,
-        ` ${pad(String(project.progress) + "%", 4, "right")}  ${project.status}`,
-        project.url,
+        ` ${pad(String(progress) + "%", 4, "right")}  ${project.phase ?? "Active"}`,
+        href,
       ),
     );
   }
 
   if (lines.length === 0) {
-    lines.push({ text: "No Linear projects synced" });
+    lines.push({ text: "No active Notion projects" });
   }
 
-  return { title: "PROJECTS · Linear", lines };
+  return { title: "ACTIVE · Notion + Linear", lines };
 }
 
-function summarizeIssues(issues: LinearIssue[], projectName: string): LinkedLine {
-  const filtered = issues.filter((i) => i.projectName === projectName);
-  const done = filtered.filter((i) => i.stateType === "completed").length;
-  const inProgress = filtered.filter((i) => i.stateType === "started").length;
-  const todo = filtered.filter((i) => i.stateType === "unstarted" || i.stateType === "backlog").length;
-  const total = filtered.length;
-  if (total === 0) return linked(`${projectName}: no issues`);
-  const pct = Math.round((done / total) * 100);
-  return linkedWithProgress(
-    `${pad(projectName, 18)} `,
-    done / total,
-    14,
-    ` ${pct}%  (${done} done · ${inProgress} active · ${todo} open)`,
+function formatLinearTeams(snapshot: OpsSnapshot): TerminalSection {
+  if (snapshot.linear.byTeam.length === 0) {
+    return { title: "LINEAR · LAB · PLAY · WOR", lines: [{ text: "Not synced" }] };
+  }
+
+  const lines = snapshot.linear.byTeam.map((team) =>
+    linked(
+      `${pad(team.teamKey, 6)}  ${team.todo} todo · ${team.inProgress} active · ${team.done} done`,
+    ),
   );
+
+  return { title: "LINEAR · LAB · PLAY · WOR", lines };
 }
 
-function formatWorkbench(snapshot: OpsSnapshot): TerminalSection {
-  const wbIssues = snapshot.linear.issues.filter(
-    (i) => i.teamKey === "LAB" && i.projectName === "Workbench V1",
-  );
-  const byState = {
-    open: wbIssues.filter((i) => i.stateType !== "completed" && i.stateType !== "canceled").length,
+function formatLastSession(snapshot: OpsSnapshot): TerminalSection {
+  const text = snapshot.focus.lastSession?.trim();
+  if (!text) {
+    return { title: "LAST SESSION", lines: [{ text: "Empty — update Focus in Notion" }] };
+  }
+
+  return {
+    title: "LAST SESSION",
+    lines: [linked(truncate(text, 62))],
   };
-
-  const lines: LinkedLine[] = [
-    summarizeIssues(snapshot.linear.issues, "Workbench V1"),
-    linked(`Total LAB issues: ${wbIssues.length}  ·  open leaf work: ${byState.open - 2}`),
-    linked(""),
-    linked("Open (Todo / In Progress):"),
-    ...wbIssues
-      .filter((i) => i.stateType !== "completed" && i.stateType !== "canceled")
-      .slice(0, 8)
-      .map((issue) => {
-        const budget = issue.url ? 52 - OPEN_WIDTH : 52;
-        return linked(
-          `  ${issue.identifier}  ${truncate(issue.title, budget)}  [${issue.state}]`,
-          issue.url,
-        );
-      }),
-  ];
-
-  return { title: "WORKBENCH V1 · Lab", lines };
 }
 
-function formatQueue(snapshot: OpsSnapshot): TerminalSection {
-  const queued = snapshot.notion.workQueue
-    .filter((q) => q.status === "Queued" || q.status === "In NOW")
-    .slice(0, 5);
-
-  if (queued.length === 0) {
-    return { title: "WORK QUEUE · top 5", lines: [{ text: "Queue empty or not synced" }] };
+function formatShipLog(snapshot: OpsSnapshot): TerminalSection {
+  if (snapshot.shipLog.length === 0) {
+    return { title: "SHIP LOG · recent", lines: [{ text: "Nothing logged recently" }] };
   }
 
-  const lines = queued.map((item, index) => {
-    const product = item.product ? `[${item.product}] ` : "";
-    const budget = item.linearUrl ? 55 - OPEN_WIDTH : 55;
-    return linked(`${index + 1}. ${product}${truncate(item.title, budget)}`, item.linearUrl);
+  const lines = snapshot.shipLog.slice(0, 5).map((entry) => {
+    const date = formatShipDate(entry.date);
+    const product = entry.product ? `${entry.product} · ` : "";
+    const datePart = date ? `${date} · ` : "";
+    const budget = entry.linearUrl ? 48 - OPEN_WIDTH : 48;
+    return linked(`${product}${datePart}${truncate(entry.title, budget)}`, entry.linearUrl);
   });
 
-  return { title: "WORK QUEUE · top 5", lines };
-}
-
-function formatResume(snapshot: OpsSnapshot): TerminalSection {
-  if (snapshot.notion.resume.length === 0) {
-    return { title: "RESUME · by product", lines: [{ text: "Not synced" }] };
-  }
-
-  const lines = snapshot.notion.resume.flatMap((entry) => {
-    const rows: LinkedLine[] = [linked(`▸ ${entry.product}`)];
-    if (entry.autoSummary) rows.push(linked(`  now: ${truncate(entry.autoSummary, 58)}`));
-    if (entry.nextInQueue) rows.push(linked(`  next: ${truncate(entry.nextInQueue, 57)}`));
-    if (entry.lastShipped) rows.push(linked(`  shipped: ${truncate(entry.lastShipped, 55)}`));
-    return rows;
-  });
-
-  return { title: "RESUME · by product", lines: lines.slice(0, 12) };
+  return { title: "SHIP LOG · recent", lines };
 }
 
 function formatHeader(snapshot: OpsSnapshot): string[] {
@@ -181,12 +174,12 @@ function formatErrors(snapshot: OpsSnapshot): TerminalSection | null {
 
 export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboard {
   const sections: TerminalSection[] = [
-    formatNow(snapshot),
-    formatCycles(snapshot),
-    formatProjects(snapshot),
-    formatWorkbench(snapshot),
-    formatQueue(snapshot),
-    formatResume(snapshot),
+    formatFocus(snapshot),
+    formatHorizon(snapshot),
+    formatActiveProjects(snapshot),
+    formatLinearTeams(snapshot),
+    formatLastSession(snapshot),
+    formatShipLog(snapshot),
   ];
 
   const errors = formatErrors(snapshot);

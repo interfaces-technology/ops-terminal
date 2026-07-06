@@ -61,6 +61,16 @@ export function getUrl(props: Record<string, NotionProperty>, ...keys: string[])
   return null;
 }
 
+export function getDate(props: Record<string, NotionProperty>, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const prop = props[key];
+    if (!prop || prop.type !== "date") continue;
+    const date = prop.date as { start: string | null; end?: string | null } | null;
+    if (date?.start) return date.start;
+  }
+  return null;
+}
+
 export function getFormulaText(props: Record<string, NotionProperty>, ...keys: string[]): string | null {
   for (const key of keys) {
     const prop = props[key];

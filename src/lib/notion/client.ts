@@ -1,6 +1,7 @@
 import { NOTION_DATABASES } from "@/lib/config";
+import { fetchFocusPage } from "@/lib/notion/focus";
 import {
-  getNumber,
+  getDate,
   getRichText,
   getSelect,
   getStatus,
@@ -8,10 +9,10 @@ import {
   getUrl,
 } from "@/lib/notion/parse";
 import type {
-  NotionNowSlot,
+  NotionFocus,
+  NotionHorizonItem,
   NotionProject,
-  NotionQueueItem,
-  NotionResumeEntry,
+  NotionShipLogEntry,
 } from "@/types/ops";
 
 const NOTION_API = "https://api.notion.com/v1";
@@ -32,7 +33,10 @@ const DATABASE_LABELS = Object.fromEntries(
   Object.entries(NOTION_DATABASES).map(([name, id]) => [id, name]),
 ) as Record<string, keyof typeof NOTION_DATABASES>;
 
-async function notionQuery(databaseId: string): Promise<NotionPage[]> {
+async function notionQuery(
+  databaseId: string,
+  body: Record<string, unknown> = {},
+): Promise<NotionPage[]> {
   const apiKey = process.env.NOTION_API_KEY;
   if (!apiKey) {
     throw new Error("NOTION_API_KEY is not set");
@@ -52,19 +56,20 @@ async function notionQuery(databaseId: string): Promise<NotionPage[]> {
       body: JSON.stringify({
         page_size: 100,
         start_cursor: cursor,
+        ...body,
       }),
       next: { revalidate: 0 },
     });
 
     if (!res.ok) {
-      const body = await res.text();
+      const responseBody = await res.text();
       const label = DATABASE_LABELS[databaseId] ?? databaseId;
       if (res.status === 404) {
         throw new Error(
           `Notion database "${label}" not found or not shared with your integration — open it in Notion → ••• → Connections → add "ops-terminal"`,
         );
       }
-      throw new Error(`Notion API error (${label}): ${res.status} ${body}`);
+      throw new Error(`Notion API error (${label}): ${res.status} ${responseBody}`);
     }
 
     const json = (await res.json()) as QueryResponse;
@@ -75,87 +80,94 @@ async function notionQuery(databaseId: string): Promise<NotionPage[]> {
   return pages;
 }
 
-function parseSlotFromTitle(title: string | null): 1 | 2 | 3 | null {
-  if (!title) return null;
-  const match = title.match(/(?:slot\s*)?([123])/i);
-  if (match) {
-    const n = Number(match[1]);
-    if (n === 1 || n === 2 || n === 3) return n;
-  }
-  return null;
+function isNowStatus(status: string | null): boolean {
+  return status?.toLowerCase() === "now";
+}
+
+function isActivePhase(phase: string | null, status: string | null): boolean {
+  if (phase?.toLowerCase() === "active") return true;
+  if (status?.toLowerCase() === "active" || status?.toLowerCase() === "in progress") return true;
+  return false;
+}
+
+async function fetchHorizon(): Promise<NotionHorizonItem[]> {
+  const pages = await notionQuery(NOTION_DATABASES.horizon, {
+    filter: {
+      or: [
+        { property: "Status", status: { equals: "Now" } },
+        { property: "Status", select: { equals: "Now" } },
+      ],
+    },
+    sorts: [{ property: "Target", direction: "ascending" }],
+  });
+
+  return pages
+    .map((page) => {
+      const props = page.properties;
+      const status = getStatus(props, "Status");
+      if (!isNowStatus(status)) return null;
+
+      return {
+        aim: getTitle(props, "Item", "Name", "Title") ?? "(untitled)",
+        area: getSelect(props, "Area", "Product"),
+        target: getDate(props, "Target"),
+        linearInitiativeUrl: getUrl(props, "Linear initiative", "Linear Initiative", "Linear"),
+      };
+    })
+    .filter((item): item is NotionHorizonItem => item !== null);
+}
+
+async function fetchActiveProjects(): Promise<NotionProject[]> {
+  const pages = await notionQuery(NOTION_DATABASES.projects);
+
+  return pages
+    .map((page) => {
+      const props = page.properties;
+      const phase = getSelect(props, "Phase");
+      const status = getStatus(props, "Status");
+
+      if (!isActivePhase(phase, status)) return null;
+
+      return {
+        name: getTitle(props, "Project name", "Name", "Project") ?? "(untitled)",
+        product: getSelect(props, "Product", "Area"),
+        phase: phase ?? status,
+        outcome: getRichText(props, "Outcome"),
+        linearUrl: getUrl(props, "Linear project", "Linear"),
+      };
+    })
+    .filter((project): project is NotionProject => project !== null);
+}
+
+async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
+  const pages = await notionQuery(NOTION_DATABASES.shipLog, {
+    sorts: [{ property: "Date", direction: "descending" }],
+  });
+
+  return pages.slice(0, 7).map((page) => {
+    const props = page.properties;
+    return {
+      title: getTitle(props, "Ship", "Name", "Title") ?? "(untitled)",
+      product: getSelect(props, "Product"),
+      date: getDate(props, "Date"),
+      summary: getRichText(props, "Summary"),
+      linearUrl: getUrl(props, "Linear", "Linear URL"),
+    };
+  });
 }
 
 export async function fetchNotionData(): Promise<{
-  now: NotionNowSlot[];
-  workQueue: NotionQueueItem[];
-  resume: NotionResumeEntry[];
-  projects: NotionProject[];
+  focus: NotionFocus;
+  horizon: NotionHorizonItem[];
+  notionProjects: NotionProject[];
+  shipLog: NotionShipLogEntry[];
 }> {
-  const [nowPages, queuePages, resumePages, projectPages] = await Promise.all([
-    notionQuery(NOTION_DATABASES.now),
-    notionQuery(NOTION_DATABASES.workQueue),
-    notionQuery(NOTION_DATABASES.resume),
-    notionQuery(NOTION_DATABASES.projects),
+  const [focus, horizon, notionProjects, shipLog] = await Promise.all([
+    fetchFocusPage(),
+    fetchHorizon(),
+    fetchActiveProjects(),
+    fetchShipLog(),
   ]);
 
-  const now: NotionNowSlot[] = nowPages
-    .map((page) => {
-      const props = page.properties;
-      const title =
-        getTitle(props, "Name", "Task", "Item", "Title") ??
-        getRichText(props, "Task", "Item");
-      const slot =
-        getNumber(props, "Slot") ??
-        parseSlotFromTitle(title) ??
-        parseSlotFromTitle(getSelect(props, "Slot"));
-
-      if (slot !== 1 && slot !== 2 && slot !== 3) return null;
-
-      return {
-        slot: slot as 1 | 2 | 3,
-        status: getStatus(props, "Status") ?? "Empty",
-        task: title,
-        product: getSelect(props, "Product"),
-        source: getSelect(props, "Source"),
-        linearUrl: getUrl(props, "Linear", "Linear URL"),
-      };
-    })
-    .filter((s): s is NotionNowSlot => s !== null)
-    .sort((a, b) => a.slot - b.slot);
-
-  const workQueue: NotionQueueItem[] = queuePages
-    .map((page) => {
-      const props = page.properties;
-      return {
-        title: getTitle(props, "Item", "Name", "Task") ?? "(untitled)",
-        product: getSelect(props, "Product"),
-        source: getSelect(props, "Source"),
-        status: getStatus(props, "Queue status", "Status"),
-        priority: getNumber(props, "Priority"),
-        linearUrl: getUrl(props, "Linear", "Linear URL"),
-      };
-    })
-    .filter((item) => item.status !== "Done" && item.status !== "Skipped");
-
-  const resume: NotionResumeEntry[] = resumePages.map((page) => {
-    const props = page.properties;
-    return {
-      product: getSelect(props, "Product") ?? getTitle(props, "Name", "Product") ?? "Unknown",
-      autoSummary: getRichText(props, "Auto summary", "Summary"),
-      nextInQueue: getRichText(props, "Next in queue"),
-      completedToday: getRichText(props, "Completed today"),
-      lastShipped: getRichText(props, "Last shipped"),
-    };
-  });
-
-  const projects: NotionProject[] = projectPages.map((page) => {
-    const props = page.properties;
-    return {
-      name: getTitle(props, "Name", "Project") ?? "(untitled)",
-      product: getSelect(props, "Product"),
-      linearUrl: getUrl(props, "Linear project", "Linear"),
-    };
-  });
-
-  return { now, workQueue, resume, projects };
+  return { focus, horizon, notionProjects, shipLog };
 }
