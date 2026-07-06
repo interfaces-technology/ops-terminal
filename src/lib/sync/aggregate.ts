@@ -1,7 +1,7 @@
 import { readCache, writeCache } from "@/lib/cache/store";
 import { fetchLinearData } from "@/lib/linear/client";
-import { extractLinearIdentifier } from "@/lib/notion/focus";
 import { fetchNotionData } from "@/lib/notion/client";
+import { buildFocusSlots, rankProjectsForFocus } from "@/lib/sync/focus";
 import type { OpsSnapshot } from "@/types/ops";
 
 function emptySnapshot(): OpsSnapshot {
@@ -16,30 +16,9 @@ function emptySnapshot(): OpsSnapshot {
   };
 }
 
-function enrichFocusWithLinear(snapshot: OpsSnapshot): void {
-  const issueByIdentifier = new Map(
-    snapshot.linear.issues.map((issue) => [issue.identifier, issue]),
-  );
-
-  for (const slot of snapshot.focus.slots) {
-    const identifier =
-      slot.linearIdentifier ??
-      extractLinearIdentifier(slot.url) ??
-      extractLinearIdentifier(slot.label);
-
-    if (!identifier) continue;
-
-    const issue = issueByIdentifier.get(identifier);
-    if (!issue) continue;
-
-    slot.linearIdentifier = identifier;
-    slot.linearState = issue.state;
-    if (!slot.url) slot.url = issue.url;
-  }
-}
-
 export async function syncOpsState(): Promise<OpsSnapshot> {
   const snapshot = emptySnapshot();
+  let focusNarrative = { lastSession: null as string | null, notes: null as string | null, thisWeek: null as string | null };
 
   await Promise.all([
     fetchLinearData()
@@ -51,10 +30,14 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
       }),
     fetchNotionData()
       .then((data) => {
-        snapshot.focus = data.focus;
         snapshot.horizon = data.horizon;
-        snapshot.notionProjects = data.notionProjects;
+        snapshot.notionProjects = rankProjectsForFocus(data.notionProjects);
         snapshot.shipLog = data.shipLog;
+        focusNarrative = {
+          lastSession: data.focus.lastSession,
+          notes: data.focus.notes,
+          thisWeek: data.focus.thisWeek,
+        };
         for (const message of data.errors) {
           snapshot.errors.push(`Notion: ${message}`);
         }
@@ -64,7 +47,11 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
       }),
   ]);
 
-  enrichFocusWithLinear(snapshot);
+  snapshot.focus = {
+    slots: buildFocusSlots(snapshot.notionProjects, snapshot.linear.projects),
+    ...focusNarrative,
+  };
+
   await writeCache(snapshot);
   return snapshot;
 }

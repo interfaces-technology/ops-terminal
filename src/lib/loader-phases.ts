@@ -10,7 +10,7 @@ export const BOOT_LINES = [
 export const STATUS_MESSAGES = [
   "Connecting to Linear API...",
   "Fetching LAB · PLAY · WOR issues...",
-  "Syncing Notion Focus & Horizon...",
+  "Syncing Notion Projects & Horizon...",
   "Aggregating unified ops snapshot...",
   "Rendering dashboard...",
 ] as const;
@@ -19,10 +19,10 @@ export const SYNC_STEPS = [
   { label: "Linear — connecting to API", weight: 0.08 },
   { label: "Linear — fetching issues (LAB, PLAY, WOR)", weight: 0.22 },
   { label: "Linear — fetching projects", weight: 0.12 },
-  { label: "Notion — reading Focus page", weight: 0.12 },
-  { label: "Notion — syncing Horizon & Projects", weight: 0.16 },
+  { label: "Notion — reading Focus notes", weight: 0.08 },
+  { label: "Notion — syncing Projects & Horizon", weight: 0.2 },
   { label: "Notion — syncing Ship Log", weight: 0.1 },
-  { label: "Merging Notion + Linear snapshot", weight: 0.12 },
+  { label: "Ranking Focus from active projects", weight: 0.12 },
   { label: "Rendering dashboard", weight: 0.08 },
 ] as const;
 

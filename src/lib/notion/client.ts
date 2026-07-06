@@ -122,9 +122,12 @@ async function fetchActiveProjects(): Promise<NotionProject[]> {
       return {
         name: getTitle(props, "Project name", "Name", "Project") ?? "(untitled)",
         product: getSelect(props, "Product", "Area"),
+        area: getSelect(props, "Area"),
         phase: phase ?? status,
         outcome: getRichText(props, "Outcome"),
         linearUrl: getUrl(props, "Linear project", "Linear"),
+        priority: getSelect(props, "Priority"),
+        target: getDate(props, "End date", "Target", "Due", "Start date"),
       };
     })
     .filter((project): project is NotionProject => project !== null);

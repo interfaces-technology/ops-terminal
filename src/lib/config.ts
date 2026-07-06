@@ -11,7 +11,7 @@ export const NOTION_FOCUS_PAGE_ID = "395df3e3-e319-81db-8965-ccf0a2b0d7f6";
 export const LINEAR_TEAM_KEYS = ["LAB", "PLAY", "WOR"] as const;
 
 /** Bump when snapshot shape or Notion/Linear sources change (invalidates Redis/file cache). */
-export const CACHE_KEY = "ops:snapshot:v2";
+export const CACHE_KEY = "ops:snapshot:v3";
 export const CACHE_PATH = ".data/cache.json";
 
 export const TERMINAL_USER = {

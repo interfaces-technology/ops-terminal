@@ -1,6 +1,7 @@
 import { box, pad, progressBar, truncate } from "@/lib/ascii/box";
+import { findLinearProject } from "@/lib/sync/match";
 import { TERMINAL_WIDTH_DESKTOP } from "@/lib/terminal-width";
-import type { LinearProject, NotionProject, OpsSnapshot } from "@/types/ops";
+import type { OpsSnapshot } from "@/types/ops";
 import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
 
 const WIDTH = TERMINAL_WIDTH_DESKTOP;
@@ -37,19 +38,6 @@ function formatShipDate(iso: string | null): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
-
-function findLinearProject(
-  notionProject: NotionProject,
-  linearProjects: LinearProject[],
-): LinearProject | undefined {
-  if (notionProject.linearUrl) {
-    const match = linearProjects.find((project) => project.url === notionProject.linearUrl);
-    if (match) return match;
-  }
-
-  const normalizedName = notionProject.name.toLowerCase();
-  return linearProjects.find((project) => project.name.toLowerCase() === normalizedName);
 }
 
 function formatFocus(snapshot: OpsSnapshot): TerminalSection {

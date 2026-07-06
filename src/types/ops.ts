@@ -56,9 +56,12 @@ export interface NotionHorizonItem {
 export interface NotionProject {
   name: string;
   product: string | null;
+  area: string | null;
   phase: string | null;
   outcome: string | null;
   linearUrl: string | null;
+  priority: string | null;
+  target: string | null;
 }
 
 export interface NotionShipLogEntry {
