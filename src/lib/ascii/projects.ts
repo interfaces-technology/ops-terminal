@@ -1,6 +1,7 @@
 import { formatDoneCanceledColumn } from "@/lib/ascii/columns";
 import { linkedWithProgress } from "@/lib/ascii/line";
 import {
+  displayProjectName,
   domainProjectCounts,
   linearOnlyProjectsForDomain,
   notionProjectsForDomain,
@@ -13,8 +14,7 @@ import type { LinearProject, NotionProject, OpsSnapshot } from "@/types/ops";
 import type { LinkedLine } from "@/types/terminal";
 
 function formatDomainHeading(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine {
-  const team = domain.linearTeamKey ? ` · ${domain.linearTeamKey}` : "";
-  const label = `▸ ${domain.label}${team}`;
+  const label = `▸ ${domain.label}`;
   const counts = domainProjectCounts(domain, snapshot);
   const teamStats = teamStatsForDomain(domain, snapshot.linear.byTeam);
   const total = teamStats ? teamStats.todo + teamStats.inProgress + teamStats.done : 0;
@@ -34,15 +34,17 @@ function formatDomainHeading(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLi
 
 function formatNotionProjectLine(
   project: NotionProject,
+  domain: OpsDomain,
   linearProjects: LinearProject[],
 ): LinkedLine {
   const linearProject = findLinearProject(project, linearProjects);
   const href = linearProject?.url ?? project.linearUrl ?? null;
   const status = linearProject?.status ?? project.status ?? project.phase ?? "—";
+  const name = displayProjectName(domain, project.name);
 
   return linkedWithProgress(
     "  ",
-    project.name,
+    name,
     "",
     linearProject ? linearProject.progress / 100 : 0,
     linearProject?.progress ?? null,
@@ -51,10 +53,12 @@ function formatNotionProjectLine(
   );
 }
 
-function formatLinearProjectLine(project: LinearProject): LinkedLine {
+function formatLinearProjectLine(project: LinearProject, domain: OpsDomain): LinkedLine {
+  const name = displayProjectName(domain, project.name);
+
   return linkedWithProgress(
     "  ",
-    project.name,
+    name,
     "",
     project.progress / 100,
     project.progress,
@@ -68,12 +72,12 @@ function formatDomainBlock(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine
 
   const notionProjects = notionProjectsForDomain(domain, snapshot.notionProjects);
   for (const project of notionProjects) {
-    lines.push(formatNotionProjectLine(project, snapshot.linear.projects));
+    lines.push(formatNotionProjectLine(project, domain, snapshot.linear.projects));
   }
 
   const linearOnly = linearOnlyProjectsForDomain(domain, snapshot);
   for (const project of linearOnly) {
-    lines.push(formatLinearProjectLine(project));
+    lines.push(formatLinearProjectLine(project, domain));
   }
 
   if (notionProjects.length === 0 && linearOnly.length === 0) {

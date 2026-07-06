@@ -80,3 +80,23 @@ export function getFormulaText(props: Record<string, NotionProperty>, ...keys: s
   }
   return null;
 }
+
+export function getFormulaNumber(props: Record<string, NotionProperty>, ...keys: string[]): number | null {
+  for (const key of keys) {
+    const prop = props[key];
+    if (!prop || prop.type !== "formula") continue;
+    const formula = prop.formula as { type: string; number?: number | null };
+    if (formula.type === "number" && formula.number != null) return formula.number;
+  }
+  return null;
+}
+
+export function getRollupNumber(props: Record<string, NotionProperty>, ...keys: string[]): number | null {
+  for (const key of keys) {
+    const prop = props[key];
+    if (!prop || prop.type !== "rollup") continue;
+    const rollup = prop.rollup as { type: string; number?: number | null };
+    if (rollup.type === "number" && rollup.number != null) return rollup.number;
+  }
+  return null;
+}

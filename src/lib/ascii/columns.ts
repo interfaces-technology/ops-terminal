@@ -1,6 +1,6 @@
 import { pad, progressBar, truncate } from "@/lib/ascii/box";
 
-/** Column 1 of the right grid — percent or active count. */
+/** Column after the bar — percent or active count. */
 export const COL_PCT = 5;
 
 /** Bar spans two column units (2 × 12). */
@@ -47,6 +47,6 @@ export function buildProgressGrid(
     : pad(pct == null ? "—" : `${pct}%`, COL_PCT, "right");
   const bar = progressBar(fillRatio, barWidth);
   const statusCol = pad(truncate(status, COL_STATUS), COL_STATUS);
-  const block = ` ${pctCol}  ${bar}  ${statusCol}`;
+  const block = ` ${bar}  ${pctCol}  ${statusCol}`;
   return { block, pctCol, bar, statusCol };
 }

@@ -1,5 +1,6 @@
 import { LINEAR_TEAM_KEYS } from "@/lib/config";
-import type { LinearIssue, LinearProject, LinearTeamStats } from "@/types/ops";
+import { isEligibleForFocus } from "@/lib/sync/focus";
+import type { LinearIssue, LinearMilestone, LinearProject, LinearTeamStats } from "@/types/ops";
 
 const LINEAR_API = "https://api.linear.app/graphql";
 
@@ -57,6 +58,27 @@ const PROJECTS_QUERY = `
   }
 `;
 
+const MILESTONES_QUERY = `
+  query Milestones($cursor: String) {
+    projectMilestones(first: 50, after: $cursor, includeArchived: false) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        id
+        name
+        status
+        progress
+        targetDate
+        project {
+          name
+          url
+          status { name }
+          teams { nodes { key } }
+        }
+      }
+    }
+  }
+`;
+
 const ISSUES_QUERY = `
   query TeamIssues($teamKeys: [String!]!) {
     issues(
@@ -90,6 +112,25 @@ interface ProjectsQueryResult {
       url: string;
       status: { name: string };
       teams: { nodes: Array<{ key: string }> };
+    }>;
+  };
+}
+
+interface MilestonesQueryResult {
+  projectMilestones: {
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+    nodes: Array<{
+      id: string;
+      name: string;
+      status: string;
+      progress: number;
+      targetDate: string | null;
+      project: {
+        name: string;
+        url: string;
+        status: { name: string };
+        teams: { nodes: Array<{ key: string }> };
+      };
     }>;
   };
 }
@@ -130,17 +171,61 @@ function computeTeamStats(issues: LinearIssue[], teamKeys: string[]): LinearTeam
   });
 }
 
+async function fetchMilestones(teamKeySet: Set<string>): Promise<LinearMilestone[]> {
+  const milestones: LinearMilestone[] = [];
+  let cursor: string | null = null;
+
+  for (;;) {
+    const data: MilestonesQueryResult = await linearQuery<MilestonesQueryResult>(MILESTONES_QUERY, {
+      cursor,
+    });
+    const batch = data.projectMilestones;
+
+    for (const node of batch.nodes) {
+      const teamKey = node.project.teams.nodes.find((team) => teamKeySet.has(team.key))?.key;
+      if (!teamKey || node.status === "done") continue;
+      if (
+        !isEligibleForFocus({
+          name: node.name,
+          status: node.status,
+          projectStatus: node.project.status.name,
+        })
+      ) {
+        continue;
+      }
+
+      milestones.push({
+        id: node.id,
+        name: node.name,
+        status: node.status,
+        progress: Math.round(node.progress),
+        targetDate: node.targetDate,
+        projectName: node.project.name,
+        projectUrl: node.project.url,
+        teamKey,
+      });
+    }
+
+    if (!batch.pageInfo.hasNextPage) break;
+    cursor = batch.pageInfo.endCursor;
+  }
+
+  return milestones;
+}
+
 export async function fetchLinearData(): Promise<{
   issues: LinearIssue[];
   projects: LinearProject[];
+  milestones: LinearMilestone[];
   byTeam: LinearTeamStats[];
 }> {
   const teamKeys = getTeamKeys();
   const teamKeySet = new Set(teamKeys);
 
-  const [projectsData, issuesData] = await Promise.all([
+  const [projectsData, issuesData, milestones] = await Promise.all([
     linearQuery<ProjectsQueryResult>(PROJECTS_QUERY),
     linearQuery<IssuesQueryResult>(ISSUES_QUERY, { teamKeys }),
+    fetchMilestones(teamKeySet),
   ]);
 
   const issues: LinearIssue[] = issuesData.issues.nodes.map((issue) => ({
@@ -171,6 +256,7 @@ export async function fetchLinearData(): Promise<{
   return {
     issues,
     projects,
+    milestones,
     byTeam: computeTeamStats(issues, teamKeys),
   };
 }

@@ -10,7 +10,7 @@ export interface OpsDomain {
 
 export const OPS_DOMAINS: OpsDomain[] = [
   { id: "company", label: "Company", notionTags: ["company", "pipeline"], linearTeamKey: null },
-  { id: "labs", label: "Labs", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
+  { id: "labs", label: "Lab", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
   { id: "play", label: "Play", notionTags: ["play"], linearTeamKey: "PLAY" },
   { id: "workbench", label: "Workbench", notionTags: ["workbench"], linearTeamKey: "WOR" },
 ];
@@ -109,4 +109,20 @@ export function domainProjectCounts(
   }
 
   return counts;
+}
+
+/** Strip a leading domain label/tag from a project name for display under that domain. */
+export function displayProjectName(domain: OpsDomain, rawName: string): string {
+  const name = rawName.trim();
+  const prefixes = new Set<string>([domain.label, ...domain.notionTags]);
+  if (domain.linearTeamKey) prefixes.add(domain.linearTeamKey);
+
+  for (const prefix of prefixes) {
+    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`^${escaped}(?:\\s*[—\\-·:]\\s*|\\s+)`, "i");
+    const stripped = name.replace(pattern, "").trim();
+    if (stripped && stripped !== name) return stripped;
+  }
+
+  return name;
 }
