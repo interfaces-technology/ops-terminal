@@ -15,8 +15,7 @@ import type {
   NotionShipLogEntry,
 } from "@/types/ops";
 
-const NOTION_API = "https://api.notion.com/v1";
-const NOTION_VERSION = "2022-06-28";
+import { NOTION_API, notionHeaders } from "@/lib/notion/auth";
 
 interface NotionPage {
   id: string;
@@ -37,20 +36,14 @@ async function notionQuery(
   databaseId: string,
   body: Record<string, unknown> = {},
 ): Promise<NotionPage[]> {
-  const apiKey = process.env.NOTION_API_KEY;
-  if (!apiKey) {
-    throw new Error("NOTION_API_KEY is not set");
-  }
-
   const pages: NotionPage[] = [];
   let cursor: string | undefined;
 
   do {
-    const res = await fetch(`${NOTION_API}/databases/${databaseId}/query`, {
+    const res = await fetch(`${NOTION_API}/data_sources/${databaseId}/query`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Notion-Version": NOTION_VERSION,
+        ...notionHeaders(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -66,7 +59,7 @@ async function notionQuery(
       const label = DATABASE_LABELS[databaseId] ?? databaseId;
       if (res.status === 404) {
         throw new Error(
-          `Notion database "${label}" not found or not shared with your integration — open it in Notion → ••• → Connections → add "ops-terminal"`,
+          `Notion database "${label}" not found — check the ID in config.ts or confirm your account can open it in Notion`,
         );
       }
       throw new Error(`Notion API error (${label}): ${res.status} ${responseBody}`);
@@ -93,10 +86,8 @@ function isActivePhase(phase: string | null, status: string | null): boolean {
 async function fetchHorizon(): Promise<NotionHorizonItem[]> {
   const pages = await notionQuery(NOTION_DATABASES.horizon, {
     filter: {
-      or: [
-        { property: "Status", status: { equals: "Now" } },
-        { property: "Status", select: { equals: "Now" } },
-      ],
+      property: "Status",
+      select: { equals: "Now" },
     },
     sorts: [{ property: "Target", direction: "ascending" }],
   });
@@ -161,13 +152,39 @@ export async function fetchNotionData(): Promise<{
   horizon: NotionHorizonItem[];
   notionProjects: NotionProject[];
   shipLog: NotionShipLogEntry[];
+  errors: string[];
 }> {
-  const [focus, horizon, notionProjects, shipLog] = await Promise.all([
+  const emptyFocus: NotionFocus = {
+    slots: [],
+    lastSession: null,
+    notes: null,
+    thisWeek: null,
+  };
+
+  const [focusResult, horizonResult, projectsResult, shipLogResult] = await Promise.allSettled([
     fetchFocusPage(),
     fetchHorizon(),
     fetchActiveProjects(),
     fetchShipLog(),
   ]);
 
-  return { focus, horizon, notionProjects, shipLog };
+  const errors: string[] = [];
+  const label = (result: PromiseSettledResult<unknown>, name: string) => {
+    if (result.status === "rejected") {
+      errors.push(`${name}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`);
+    }
+  };
+
+  label(focusResult, "Focus");
+  label(horizonResult, "Horizon");
+  label(projectsResult, "Projects");
+  label(shipLogResult, "Ship Log");
+
+  return {
+    focus: focusResult.status === "fulfilled" ? focusResult.value : emptyFocus,
+    horizon: horizonResult.status === "fulfilled" ? horizonResult.value : [],
+    notionProjects: projectsResult.status === "fulfilled" ? projectsResult.value : [],
+    shipLog: shipLogResult.status === "fulfilled" ? shipLogResult.value : [],
+    errors,
+  };
 }

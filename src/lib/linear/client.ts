@@ -74,7 +74,7 @@ const ISSUES_QUERY = `
         url
         state { name type }
         project { name }
-        milestone { name }
+        projectMilestone { name }
         team { name key }
       }
     }
@@ -104,7 +104,7 @@ interface IssuesQueryResult {
       url: string;
       state: { name: string; type: string };
       project: { name: string } | null;
-      milestone: { name: string } | null;
+      projectMilestone: { name: string } | null;
       team: { name: string; key: string };
     }>;
   };
@@ -151,7 +151,7 @@ export async function fetchLinearData(): Promise<{
     stateType: issue.state.type,
     team: issue.team.name,
     teamKey: issue.team.key,
-    milestoneName: issue.milestone?.name ?? null,
+    milestoneName: issue.projectMilestone?.name ?? null,
     projectName: issue.project?.name ?? null,
     priority: issue.priority,
     url: issue.url,

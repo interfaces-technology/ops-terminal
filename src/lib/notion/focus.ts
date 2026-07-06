@@ -1,8 +1,7 @@
 import { NOTION_FOCUS_PAGE_ID } from "@/lib/config";
 import type { NotionFocus, NotionFocusSlot } from "@/types/ops";
 
-const NOTION_API = "https://api.notion.com/v1";
-const NOTION_VERSION = "2022-06-28";
+import { NOTION_API, notionHeaders } from "@/lib/notion/auth";
 
 interface RichText {
   plain_text: string;
@@ -63,16 +62,8 @@ function normalizeHeading(text: string): string {
 }
 
 async function notionFetch(path: string): Promise<Response> {
-  const apiKey = process.env.NOTION_API_KEY;
-  if (!apiKey) {
-    throw new Error("NOTION_API_KEY is not set");
-  }
-
   return fetch(`${NOTION_API}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Notion-Version": NOTION_VERSION,
-    },
+    headers: notionHeaders(),
     next: { revalidate: 0 },
   });
 }
@@ -89,7 +80,7 @@ async function fetchBlockChildren(blockId: string): Promise<NotionBlock[]> {
       const body = await res.text();
       if (res.status === 404) {
         throw new Error(
-          'Notion Focus page not found or not shared with your integration — open Focus → ••• → Connections → add "ops-terminal"',
+          "Notion Focus page not found — check NOTION_FOCUS_PAGE_ID in config.ts or confirm you can open the page in Notion",
         );
       }
       throw new Error(`Notion Blocks API error (focus): ${res.status} ${body}`);

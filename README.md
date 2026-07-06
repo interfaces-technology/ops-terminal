@@ -28,7 +28,7 @@ cp .env.example .env.local
 | Variable | Where to get it |
 |----------|-----------------|
 | `LINEAR_API_KEY` | Linear → Settings → API → Personal API keys |
-| `NOTION_API_KEY` | [Notion integrations](https://www.notion.so/my-integrations) — share **Focus**, **Horizon**, **Projects**, **Ship Log** with the integration |
+| `NOTION_API_KEY` | [Notion Developer portal](https://www.notion.so/profile/integrations) → **Personal access tokens** → create token with **Notion API** capability |
 
 ```bash
 npm install

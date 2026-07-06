@@ -55,6 +55,9 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
         snapshot.horizon = data.horizon;
         snapshot.notionProjects = data.notionProjects;
         snapshot.shipLog = data.shipLog;
+        for (const message of data.errors) {
+          snapshot.errors.push(`Notion: ${message}`);
+        }
       })
       .catch((err: unknown) => {
         snapshot.errors.push(`Notion: ${err instanceof Error ? err.message : String(err)}`);
