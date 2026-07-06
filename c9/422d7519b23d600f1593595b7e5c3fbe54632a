@@ -1,0 +1,23 @@
+src/lib/sync/aggregate.ts
+  s_8830051be66a39::t_8ab91b90f88410 87-91
+src/lib/notion/focus.ts
+  s_8830051be66a39::t_e0b3e6055780cb 67
+src/lib/config.ts
+  s_8830051be66a39::t_83090908a0dc07 13-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c9422d7519b23d600f1593595b7e5c3fbe54632a",
+  "prompts": {},
+  "sessions": {
+    "s_8830051be66a39": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dca4e07e-6eac-4b10-bfea-f3785c2e4c65",
+        "model": "composer-2.5"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
