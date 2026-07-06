@@ -1,0 +1,40 @@
+src/lib/notion/auth.ts
+  s_b2c41a36f9a95c::t_4d2d068adac0da 1-17
+src/lib/sync/aggregate.ts
+  s_b2c41a36f9a95c::t_b061516ea110bd 58-60
+.env.example
+  s_b2c41a36f9a95c::t_e96c42696f878a 4-5
+src/lib/notion/focus.ts
+  s_b2c41a36f9a95c::t_7330d17d23474c 83
+  s_b2c41a36f9a95c::t_f0b10bcf932526 66
+  s_b2c41a36f9a95c::t_1420a6f73590ed 4
+src/lib/notion/client.ts
+  s_b2c41a36f9a95c::t_185295bd68911b 155,157-164,171-189
+  s_b2c41a36f9a95c::t_1bde8d78a85a43 43
+  s_b2c41a36f9a95c::t_2028c576d741a7 62
+  s_b2c41a36f9a95c::t_dc4f266a7fb900 18
+  s_b2c41a36f9a95c::t_bc3194b2c4a21d 46
+  s_b2c41a36f9a95c::t_2381626efc29d9 89-90
+README.md
+  s_b2c41a36f9a95c::t_767a345e7259bd 31
+src/lib/linear/client.ts
+  s_b2c41a36f9a95c::t_6311b7e6654c78 154
+  s_b2c41a36f9a95c::t_7152b1ccfe536b 107
+  s_b2c41a36f9a95c::t_78035e370accc9 77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7800ca99c7e647239d5e11976844c2355f5a99e3",
+  "prompts": {},
+  "sessions": {
+    "s_b2c41a36f9a95c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "36695a84-81dc-4126-a046-078f0780db31",
+        "model": "composer-2.5"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
