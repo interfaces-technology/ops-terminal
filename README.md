@@ -1,22 +1,22 @@
 # Ops Terminal
 
-ASCII ops dashboard for [The Interfaces Company](https://github.com/interfaces-technology). Syncs **Linear** (engineering) and **Notion** (NOW, Work Queue, Resume) into a local cache and renders progress as a terminal-style board.
+ASCII ops dashboard for [The Interfaces Company](https://github.com/interfaces-technology). **One unified snapshot** merging **Notion** (plan + today) and **Linear** (build + status).
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ NOW · 3 slots                                                                ║
+║ FOCUS · 3 slots                                                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║ [1] ▶ Error and loading states · Workbench                                   ║
-║ [2] ○ Production PDF export layout · Workbench                               ║
-║ [3] ◐ Deploy pipeline docs · Workbench                                       ║
+║ [1] ▶ WOR-124 Settings page · Workbench  [In Progress]                       ║
+║ [2] ▶ Play brand refresh · Play                                              ║
+║ [3] ○ Company ops terminal · Company                                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
 ## Stack
 
 - Next.js 16 (App Router)
-- Linear GraphQL API
-- Notion REST API
+- Linear GraphQL API (LAB · PLAY · WOR)
+- Notion REST API (Focus page, Horizon, Projects, Ship Log)
 - Upstash Redis cache on Vercel (local `.data/cache.json` fallback)
 
 ## Setup
@@ -28,7 +28,7 @@ cp .env.example .env.local
 | Variable | Where to get it |
 |----------|-----------------|
 | `LINEAR_API_KEY` | Linear → Settings → API → Personal API keys |
-| `NOTION_API_KEY` | [Notion integrations](https://www.notion.so/my-integrations) — share Work Queue, NOW, Resume, Projects DBs with the integration |
+| `NOTION_API_KEY` | [Notion Developer portal](https://www.notion.so/profile/integrations) → **Personal access tokens** → create token with **Notion API** capability |
 
 ```bash
 npm install
@@ -50,26 +50,27 @@ Without Redis env vars, the app falls back to the local file cache (works in dev
 
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/api/sync` | POST | Fetch Linear + Notion → write cache |
+| `/api/sync` | POST | Fetch Linear + Notion → write unified cache |
 | `/api/state` | GET | Return cached snapshot (`?force=1` to sync first) |
 
 ## What it shows
 
-- **NOW** — 3 slots from Notion
-- **Active cycles** — Lab + Play cycle progress from Linear
-- **Projects** — Linear project completion bars
-- **Workbench V1** — open LAB issues
-- **Work Queue** — top queued items from Notion
-- **Resume** — per-product summaries from Notion
+- **Focus** — 3 daily slots from Notion Focus page (enriched with Linear issue state)
+- **Horizon** — committed aims (Status: Now) with Linear initiative links
+- **Active** — Notion projects (Phase: Active) + Linear project progress
+- **Linear** — issue counts by team (LAB · PLAY · WOR)
+- **Last session** — from Focus page
+- **Ship Log** — recent ships from Notion
 
-## Ops rules (respect PCR model)
+## Ops rules (Company OS)
 
-- Read-only mirror — does not write to Notion NOW/Queue/Resume
-- Does not bulk-sync Linear into Notion
+- Read-only mirror — does not write to Notion or Linear
+- Cross-reference only — never bulk-sync Linear issues into Notion
 - Database IDs match `Interfaces-Company/docs/notion.md`
+- Retired sources (NOW, Work Queue, Resume, Cycles) are not used
 
 ## Repo
 
 https://github.com/interfaces-technology/ops-terminal
 
-Docs: [Interfaces-Company](https://github.com/interfaces-technology/Interfaces-Company) (`docs/workflow.md`, `docs/notion.md`)
+Docs: [Interfaces-Company](https://github.com/interfaces-technology/Interfaces-Company) (`docs/company-os.md`, `docs/notion.md`, `docs/linear.md`)

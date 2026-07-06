@@ -1,14 +1,22 @@
 export interface LineProgress {
   ratio: number;
-  width: number;
-  prefix: string;
-  suffix: string;
+  label: string;
+  pct: number | null;
+  status: string;
+  /** Overrides the % column (e.g. domain active count). */
+  pctColumn?: string;
 }
 
 export interface LinkedLine {
   text: string;
   href?: string;
   progress?: LineProgress;
+  /** Right-aligned text (counts, status) without a progress bar. */
+  trail?: string;
+  /** When set with href, only this span is clickable (usually the project name). */
+  linkText?: string;
+  linkPrefix?: string;
+  linkSuffix?: string;
 }
 
 export interface TerminalSection {

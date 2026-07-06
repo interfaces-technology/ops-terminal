@@ -1,4 +1,5 @@
-import type { LinearCycle, LinearIssue, LinearProject } from "@/types/ops";
+import { LINEAR_TEAM_KEYS } from "@/lib/config";
+import type { LinearIssue, LinearProject, LinearTeamStats } from "@/types/ops";
 
 const LINEAR_API = "https://api.linear.app/graphql";
 
@@ -41,29 +42,6 @@ async function linearQuery<T>(
   return json.data;
 }
 
-const CYCLES_QUERY = `
-  query TeamsAndCycles {
-    teams {
-      nodes {
-        id
-        name
-        key
-        cycles(filter: { isPast: { eq: false } }) {
-          nodes {
-            id
-            number
-            startsAt
-            endsAt
-            isActive
-            issueCountHistory
-            completedIssueCountHistory
-          }
-        }
-      }
-    }
-  }
-`;
-
 const PROJECTS_QUERY = `
   query Projects {
     projects(first: 50) {
@@ -82,7 +60,7 @@ const PROJECTS_QUERY = `
 const ISSUES_QUERY = `
   query TeamIssues($teamKeys: [String!]!) {
     issues(
-      first: 100
+      first: 150
       filter: {
         team: { key: { in: $teamKeys } }
         state: { type: { nin: ["canceled", "duplicate"] } }
@@ -95,34 +73,13 @@ const ISSUES_QUERY = `
         priority
         url
         state { name type }
-        cycle { number }
         project { name }
+        projectMilestone { name }
         team { name key }
       }
     }
   }
 `;
-
-interface CyclesQueryResult {
-  teams: {
-    nodes: Array<{
-      id: string;
-      name: string;
-      key: string;
-      cycles: {
-        nodes: Array<{
-          id: string;
-          number: number;
-          startsAt: string;
-          endsAt: string;
-          isActive: boolean;
-          issueCountHistory: number[];
-          completedIssueCountHistory: number[];
-        }>;
-      };
-    }>;
-  };
-}
 
 interface ProjectsQueryResult {
   projects: {
@@ -146,54 +103,45 @@ interface IssuesQueryResult {
       priority: number;
       url: string;
       state: { name: string; type: string };
-      cycle: { number: number } | null;
       project: { name: string } | null;
+      projectMilestone: { name: string } | null;
       team: { name: string; key: string };
     }>;
   };
 }
 
-function last<T>(arr: T[]): T | undefined {
-  return arr.length > 0 ? arr[arr.length - 1] : undefined;
+function getTeamKeys(): string[] {
+  const fromEnv = process.env.LINEAR_TEAM_KEYS?.split(",").map((key) => key.trim()).filter(Boolean);
+  if (fromEnv && fromEnv.length > 0) return fromEnv;
+  return [...LINEAR_TEAM_KEYS];
+}
+
+function computeTeamStats(issues: LinearIssue[], teamKeys: string[]): LinearTeamStats[] {
+  return teamKeys.map((teamKey) => {
+    const teamIssues = issues.filter((issue) => issue.teamKey === teamKey);
+    return {
+      teamKey,
+      todo: teamIssues.filter(
+        (issue) => issue.stateType === "unstarted" || issue.stateType === "backlog",
+      ).length,
+      inProgress: teamIssues.filter((issue) => issue.stateType === "started").length,
+      done: teamIssues.filter((issue) => issue.stateType === "completed").length,
+    };
+  });
 }
 
 export async function fetchLinearData(): Promise<{
   issues: LinearIssue[];
-  cycles: LinearCycle[];
   projects: LinearProject[];
+  byTeam: LinearTeamStats[];
 }> {
-  const teamKeys = (process.env.LINEAR_TEAM_KEYS?.split(",") ?? ["LAB", "PLAY"]).map((key) =>
-    key.trim(),
-  );
+  const teamKeys = getTeamKeys();
   const teamKeySet = new Set(teamKeys);
 
-  const [cyclesData, projectsData, issuesData] = await Promise.all([
-    linearQuery<CyclesQueryResult>(CYCLES_QUERY),
+  const [projectsData, issuesData] = await Promise.all([
     linearQuery<ProjectsQueryResult>(PROJECTS_QUERY),
     linearQuery<IssuesQueryResult>(ISSUES_QUERY, { teamKeys }),
   ]);
-
-  const cycles: LinearCycle[] = [];
-
-  for (const team of cyclesData.teams.nodes) {
-    if (!teamKeySet.has(team.key)) continue;
-
-    for (const cycle of team.cycles.nodes) {
-      const issueCount = last(cycle.issueCountHistory) ?? 0;
-      const completedCount = last(cycle.completedIssueCountHistory) ?? 0;
-      cycles.push({
-        id: cycle.id,
-        number: cycle.number,
-        team: team.name,
-        teamKey: team.key,
-        startsAt: cycle.startsAt,
-        endsAt: cycle.endsAt,
-        isCurrent: cycle.isActive,
-        issueCount,
-        completedCount,
-      });
-    }
-  }
 
   const issues: LinearIssue[] = issuesData.issues.nodes.map((issue) => ({
     id: issue.id,
@@ -203,22 +151,26 @@ export async function fetchLinearData(): Promise<{
     stateType: issue.state.type,
     team: issue.team.name,
     teamKey: issue.team.key,
-    cycleNumber: issue.cycle?.number ?? null,
+    milestoneName: issue.projectMilestone?.name ?? null,
     projectName: issue.project?.name ?? null,
     priority: issue.priority,
     url: issue.url,
   }));
 
   const projects: LinearProject[] = projectsData.projects.nodes
-    .filter((p) => p.teams.nodes.some((t) => teamKeySet.has(t.key)))
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      teamKey: p.teams.nodes[0]?.key ?? "?",
-      progress: Math.round(p.progress * 100),
-      status: p.status.name,
-      url: p.url,
+    .filter((project) => project.teams.nodes.some((team) => teamKeySet.has(team.key)))
+    .map((project) => ({
+      id: project.id,
+      name: project.name,
+      teamKey: project.teams.nodes[0]?.key ?? "?",
+      progress: Math.round(project.progress * 100),
+      status: project.status.name,
+      url: project.url,
     }));
 
-  return { issues, cycles, projects };
+  return {
+    issues,
+    projects,
+    byTeam: computeTeamStats(issues, teamKeys),
+  };
 }

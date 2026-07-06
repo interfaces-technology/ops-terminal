@@ -1,9 +1,9 @@
 export const SITE_NAME = "Ops Terminal";
 export const SITE_SHORT_NAME = "Ops";
 export const SITE_DESCRIPTION =
-  "ASCII ops dashboard for The Interfaces Company. Syncs Linear engineering data and Notion work queues into a terminal-style board.";
+  "ASCII ops dashboard for The Interfaces Company. One snapshot merging Notion Focus, Horizon, and Ship Log with Linear engineering status.";
 export const SITE_TAGLINE =
-  "Linear + Notion sync · The Interfaces Company";
+  "Notion + Linear · unified snapshot · The Interfaces Company";
 export const SITE_CREATOR = "The Interfaces Company";
 export const SITE_CREATOR_URL = "https://github.com/interfaces-technology";
 export const SITE_THEME_COLOR = "#000000";
@@ -13,6 +13,8 @@ export const SITE_KEYWORDS = [
   "ops terminal",
   "Linear",
   "Notion",
+  "Focus",
+  "Horizon",
   "dashboard",
   "ASCII",
   "Interfaces Company",
