@@ -1,6 +1,6 @@
 import { readCache, writeCache } from "@/lib/cache/store";
 import { fetchLinearData } from "@/lib/linear/client";
-import { fetchNotionData } from "@/lib/notion/client";
+import { fetchNotionData, isActiveNotionProject } from "@/lib/notion/client";
 import { buildFocusSlots, rankProjectsForFocus } from "@/lib/sync/focus";
 import type { OpsSnapshot } from "@/types/ops";
 
@@ -31,7 +31,7 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
     fetchNotionData()
       .then((data) => {
         snapshot.horizon = data.horizon;
-        snapshot.notionProjects = rankProjectsForFocus(data.notionProjects);
+        snapshot.notionProjects = data.notionProjects;
         snapshot.shipLog = data.shipLog;
         focusNarrative = {
           lastSession: data.focus.lastSession,
@@ -47,8 +47,12 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
       }),
   ]);
 
+  const activeProjects = rankProjectsForFocus(
+    snapshot.notionProjects.filter(isActiveNotionProject),
+  );
+
   snapshot.focus = {
-    slots: buildFocusSlots(snapshot.notionProjects, snapshot.linear.projects),
+    slots: buildFocusSlots(activeProjects, snapshot.linear.projects),
     ...focusNarrative,
   };
 

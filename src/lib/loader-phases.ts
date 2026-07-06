@@ -20,9 +20,9 @@ export const SYNC_STEPS = [
   { label: "Linear — fetching issues (LAB, PLAY, WOR)", weight: 0.22 },
   { label: "Linear — fetching projects", weight: 0.12 },
   { label: "Notion — reading Focus notes", weight: 0.08 },
-  { label: "Notion — syncing Projects & Horizon", weight: 0.2 },
+  { label: "Notion — syncing Projects & Horizon", weight: 0.22 },
   { label: "Notion — syncing Ship Log", weight: 0.1 },
-  { label: "Ranking Focus from active projects", weight: 0.12 },
+  { label: "Merging projects by domain", weight: 0.12 },
   { label: "Rendering dashboard", weight: 0.08 },
 ] as const;
 

@@ -37,6 +37,7 @@ export interface NotionFocusSlot {
   url: string | null;
   linearIdentifier: string | null;
   linearState: string | null;
+  progress: number | null;
 }
 
 export interface NotionFocus {
@@ -58,6 +59,7 @@ export interface NotionProject {
   product: string | null;
   area: string | null;
   phase: string | null;
+  status: string | null;
   outcome: string | null;
   linearUrl: string | null;
   priority: string | null;

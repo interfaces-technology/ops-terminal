@@ -1,30 +1,12 @@
-import { box, pad, progressBar, truncate } from "@/lib/ascii/box";
-import { findLinearProject } from "@/lib/sync/match";
-import { TERMINAL_WIDTH_DESKTOP } from "@/lib/terminal-width";
+import { box, pad, truncate } from "@/lib/ascii/box";
+import { formatProjectsByDomain } from "@/lib/ascii/projects";
+import { formatRowText, linked, linkedWithProgress } from "@/lib/ascii/line";
+import { TERMINAL_WIDTH_DESKTOP, terminalInner } from "@/lib/terminal-width";
 import type { OpsSnapshot } from "@/types/ops";
 import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
 
 const WIDTH = TERMINAL_WIDTH_DESKTOP;
-const OPEN_WIDTH = " [OPEN]".length;
-
-function linked(text: string, href?: string | null): LinkedLine {
-  return href ? { text, href } : { text };
-}
-
-function linkedWithProgress(
-  prefix: string,
-  ratio: number,
-  barWidth: number,
-  suffix: string,
-  href?: string | null,
-): LinkedLine {
-  const bar = progressBar(ratio, barWidth);
-  return {
-    text: `${prefix}${bar}${suffix}`,
-    href: href ?? undefined,
-    progress: { ratio, width: barWidth, prefix, suffix },
-  };
-}
+const INNER = terminalInner(WIDTH);
 
 function formatTargetDate(iso: string | null): string {
   if (!iso) return "";
@@ -47,11 +29,22 @@ function formatFocus(snapshot: OpsSnapshot): TerminalSection {
       return linked(`[${slotNum}] (empty)`);
     }
 
-    const stateSuffix = slot.linearState ? `  [${slot.linearState}]` : "";
     const area = slot.area ? ` · ${slot.area}` : "";
-    const budget = slot.url ? 44 - OPEN_WIDTH - stateSuffix.length : 44 - stateSuffix.length;
-    const label = truncate(slot.label, Math.max(12, budget));
-    return linked(`[${slotNum}] ▶ ${label}${area}${stateSuffix}`, slot.url);
+
+    if (slot.progress == null) {
+      const statusSuffix = slot.linearState ? `  [${slot.linearState}]` : "";
+      return linked(`[${slotNum}] ▶ ${slot.label}${area}${statusSuffix}`, slot.url);
+    }
+
+    return linkedWithProgress(
+      `[${slotNum}] ▶ `,
+      slot.label,
+      area,
+      slot.progress / 100,
+      slot.progress,
+      slot.linearState ?? "",
+      slot.url,
+    );
   });
 
   return { title: "FOCUS · 3 slots", lines: slots };
@@ -66,53 +59,17 @@ function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
     const target = formatTargetDate(item.target);
     const targetText = target ? pad(target, 12, "right") : pad("", 12);
     const area = item.area ? ` · ${item.area}` : "";
-    const budget = item.linearInitiativeUrl ? 34 - OPEN_WIDTH : 34;
-    const aim = truncate(item.aim, budget);
-    return linked(`${aim}${area}  ${targetText}`, item.linearInitiativeUrl);
+    return linked(`${item.aim}${area}  ${targetText}`, item.linearInitiativeUrl);
   });
 
   return { title: "HORIZON · Now", lines };
 }
 
-function formatActiveProjects(snapshot: OpsSnapshot): TerminalSection {
-  const lines: LinkedLine[] = [];
-
-  for (const project of snapshot.notionProjects) {
-    const linearProject = findLinearProject(project, snapshot.linear.projects);
-    const href = linearProject?.url ?? project.linearUrl;
-    const progress = linearProject?.progress ?? 0;
-    const budget = href ? 22 - OPEN_WIDTH : 22;
-
-    lines.push(
-      linkedWithProgress(
-        `${pad(truncate(project.name, budget), 22)} `,
-        progress / 100,
-        14,
-        ` ${pad(String(progress) + "%", 4, "right")}  ${project.phase ?? "Active"}`,
-        href,
-      ),
-    );
-  }
-
-  if (lines.length === 0) {
-    lines.push({ text: "No active Notion projects" });
-  }
-
-  return { title: "ACTIVE · Notion + Linear", lines };
-}
-
-function formatLinearTeams(snapshot: OpsSnapshot): TerminalSection {
-  if (snapshot.linear.byTeam.length === 0) {
-    return { title: "LINEAR · LAB · PLAY · WOR", lines: [{ text: "Not synced" }] };
-  }
-
-  const lines = snapshot.linear.byTeam.map((team) =>
-    linked(
-      `${pad(team.teamKey, 6)}  ${team.todo} todo · ${team.inProgress} active · ${team.done} done`,
-    ),
-  );
-
-  return { title: "LINEAR · LAB · PLAY · WOR", lines };
+function formatProjects(snapshot: OpsSnapshot): TerminalSection {
+  return {
+    title: "PROJECTS · Company · Labs · Play · Workbench",
+    lines: formatProjectsByDomain(snapshot),
+  };
 }
 
 function formatLastSession(snapshot: OpsSnapshot): TerminalSection {
@@ -123,7 +80,7 @@ function formatLastSession(snapshot: OpsSnapshot): TerminalSection {
 
   return {
     title: "LAST SESSION",
-    lines: [linked(truncate(text, 62))],
+    lines: [linked(truncate(text, INNER))],
   };
 }
 
@@ -136,8 +93,7 @@ function formatShipLog(snapshot: OpsSnapshot): TerminalSection {
     const date = formatShipDate(entry.date);
     const product = entry.product ? `${entry.product} · ` : "";
     const datePart = date ? `${date} · ` : "";
-    const budget = entry.linearUrl ? 48 - OPEN_WIDTH : 48;
-    return linked(`${product}${datePart}${truncate(entry.title, budget)}`, entry.linearUrl);
+    return linked(`${product}${datePart}${entry.title}`, entry.linearUrl);
   });
 
   return { title: "SHIP LOG · recent", lines };
@@ -160,12 +116,16 @@ function formatErrors(snapshot: OpsSnapshot): TerminalSection | null {
   };
 }
 
+function lineDisplayText(line: LinkedLine): string {
+  const ratio = line.progress?.ratio ?? 1;
+  return formatRowText(line, ratio, INNER);
+}
+
 export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboard {
   const sections: TerminalSection[] = [
     formatFocus(snapshot),
     formatHorizon(snapshot),
-    formatActiveProjects(snapshot),
-    formatLinearTeams(snapshot),
+    formatProjects(snapshot),
     formatLastSession(snapshot),
     formatShipLog(snapshot),
   ];
@@ -186,7 +146,13 @@ export function renderDashboard(snapshot: OpsSnapshot): string {
 
   for (const [index, section] of sections.entries()) {
     if (index > 0) parts.push("");
-    parts.push(...box(section.title, section.lines.map((line) => line.text), WIDTH));
+    parts.push(
+      ...box(
+        section.title,
+        section.lines.map((line) => lineDisplayText(line)),
+        WIDTH,
+      ),
+    );
   }
 
   return parts.join("\n");

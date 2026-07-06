@@ -83,6 +83,34 @@ function isActivePhase(phase: string | null, status: string | null): boolean {
   return false;
 }
 
+export function isActiveNotionProject(project: NotionProject): boolean {
+  return isActivePhase(project.phase, project.status);
+}
+
+async function fetchProjects(): Promise<NotionProject[]> {
+  const pages = await notionQuery(NOTION_DATABASES.projects);
+
+  return pages
+    .map((page) => {
+      const props = page.properties;
+      const phase = getSelect(props, "Phase");
+      const status = getStatus(props, "Status");
+
+      return {
+        name: getTitle(props, "Project name", "Name", "Project") ?? "(untitled)",
+        product: getSelect(props, "Product", "Area"),
+        area: getSelect(props, "Area"),
+        phase,
+        status,
+        outcome: getRichText(props, "Outcome"),
+        linearUrl: getUrl(props, "Linear project", "Linear"),
+        priority: getSelect(props, "Priority"),
+        target: getDate(props, "End date", "Target", "Due", "Start date"),
+      };
+    })
+    .filter((project) => project.name !== "(untitled)");
+}
+
 async function fetchHorizon(): Promise<NotionHorizonItem[]> {
   const pages = await notionQuery(NOTION_DATABASES.horizon, {
     filter: {
@@ -106,31 +134,6 @@ async function fetchHorizon(): Promise<NotionHorizonItem[]> {
       };
     })
     .filter((item): item is NotionHorizonItem => item !== null);
-}
-
-async function fetchActiveProjects(): Promise<NotionProject[]> {
-  const pages = await notionQuery(NOTION_DATABASES.projects);
-
-  return pages
-    .map((page) => {
-      const props = page.properties;
-      const phase = getSelect(props, "Phase");
-      const status = getStatus(props, "Status");
-
-      if (!isActivePhase(phase, status)) return null;
-
-      return {
-        name: getTitle(props, "Project name", "Name", "Project") ?? "(untitled)",
-        product: getSelect(props, "Product", "Area"),
-        area: getSelect(props, "Area"),
-        phase: phase ?? status,
-        outcome: getRichText(props, "Outcome"),
-        linearUrl: getUrl(props, "Linear project", "Linear"),
-        priority: getSelect(props, "Priority"),
-        target: getDate(props, "End date", "Target", "Due", "Start date"),
-      };
-    })
-    .filter((project): project is NotionProject => project !== null);
 }
 
 async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
@@ -167,7 +170,7 @@ export async function fetchNotionData(): Promise<{
   const [focusResult, horizonResult, projectsResult, shipLogResult] = await Promise.allSettled([
     fetchFocusPage(),
     fetchHorizon(),
-    fetchActiveProjects(),
+    fetchProjects(),
     fetchShipLog(),
   ]);
 

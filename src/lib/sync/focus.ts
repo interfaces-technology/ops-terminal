@@ -42,7 +42,8 @@ export function buildFocusSlots(
         area: project.product ?? project.area,
         url: linear?.url ?? project.linearUrl,
         linearIdentifier: null,
-        linearState: linear ? `${linear.progress}% · ${linear.status}` : null,
+        linearState: linear?.status ?? null,
+        progress: linear?.progress ?? null,
       };
     });
 }
