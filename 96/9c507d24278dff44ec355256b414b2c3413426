@@ -1,0 +1,35 @@
+src/lib/sync/match.ts
+  s_c6e55c62fc07c4::t_874e3ba438d780 3-22
+src/lib/config.ts
+  s_c6e55c62fc07c4::t_94fda63f24743c 15
+src/lib/ascii/projects.ts
+  s_c6e55c62fc07c4::t_f101440033255d 12
+  s_c6e55c62fc07c4::t_6175b5f6e12349 5
+  s_c6e55c62fc07c4::t_c6ea14957cb111 19
+  s_c6e55c62fc07c4::t_9da013302ae27b 42,48-49,57,63-64
+src/types/ops.ts
+  s_c6e55c62fc07c4::t_289b3886bdf3ca 97
+src/lib/domains.ts
+  s_c6e55c62fc07c4::t_35b755296da0a3 1
+  s_c6e55c62fc07c4::t_9315a7df4920d1 115-119,121-123,125-130
+  s_c6e55c62fc07c4::t_7028ed334a3e88 114,120,124
+src/lib/notion/client.ts
+  s_c6e55c62fc07c4::t_8fc62f451fff46 116-120
+  s_c6e55c62fc07c4::t_f89115d499a1cc 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "969c507d24278dff44ec355256b414b2c3413426",
+  "prompts": {},
+  "sessions": {
+    "s_c6e55c62fc07c4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dee1cc67-b67d-47cb-b3c4-ab9db2edb7d5",
+        "model": "composer-2.5"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
