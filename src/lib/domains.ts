@@ -1,4 +1,4 @@
-import { findLinearProject } from "@/lib/sync/match";
+import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
 import type { LinearProject, LinearTeamStats, NotionProject, OpsSnapshot } from "@/types/ops";
 
 export interface OpsDomain {
@@ -109,6 +109,23 @@ export function domainProjectCounts(
   }
 
   return counts;
+}
+
+/** Average combined Notion + Linear progress across all projects listed in a domain. */
+export function domainProgressRatio(domain: OpsDomain, snapshot: OpsSnapshot): number {
+  const progresses: number[] = [];
+
+  for (const notionProject of notionProjectsForDomain(domain, snapshot.notionProjects)) {
+    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
+    progresses.push(resolveProjectProgress(notionProject, linearProject).ratio);
+  }
+
+  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
+    progresses.push(resolveProjectProgress(null, linearProject).ratio);
+  }
+
+  if (progresses.length === 0) return 0;
+  return progresses.reduce((sum, ratio) => sum + ratio, 0) / progresses.length;
 }
 
 /** Strip a leading domain label/tag from a project name for display under that domain. */

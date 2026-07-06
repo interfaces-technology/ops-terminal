@@ -94,6 +94,7 @@ export interface NotionProject {
   linearUrl: string | null;
   priority: string | null;
   target: string | null;
+  progress: number | null;
 }
 
 export interface NotionShipLogEntry {

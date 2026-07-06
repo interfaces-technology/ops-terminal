@@ -2,23 +2,21 @@ import { formatDoneCanceledColumn } from "@/lib/ascii/columns";
 import { linkedWithProgress } from "@/lib/ascii/line";
 import {
   displayProjectName,
+  domainProgressRatio,
   domainProjectCounts,
   linearOnlyProjectsForDomain,
   notionProjectsForDomain,
   OPS_DOMAINS,
-  teamStatsForDomain,
   type OpsDomain,
 } from "@/lib/domains";
-import { findLinearProject } from "@/lib/sync/match";
+import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
 import type { LinearProject, NotionProject, OpsSnapshot } from "@/types/ops";
 import type { LinkedLine } from "@/types/terminal";
 
 function formatDomainHeading(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine {
   const label = `▸ ${domain.label}`;
   const counts = domainProjectCounts(domain, snapshot);
-  const teamStats = teamStatsForDomain(domain, snapshot.linear.byTeam);
-  const total = teamStats ? teamStats.todo + teamStats.inProgress + teamStats.done : 0;
-  const ratio = total > 0 ? teamStats!.done / total : 0;
+  const ratio = domainProgressRatio(domain, snapshot);
 
   return {
     text: label,
@@ -41,13 +39,14 @@ function formatNotionProjectLine(
   const href = linearProject?.url ?? project.linearUrl ?? null;
   const status = linearProject?.status ?? project.status ?? project.phase ?? "—";
   const name = displayProjectName(domain, project.name);
+  const { ratio, pct } = resolveProjectProgress(project, linearProject);
 
   return linkedWithProgress(
     "  ",
     name,
     "",
-    linearProject ? linearProject.progress / 100 : 0,
-    linearProject?.progress ?? null,
+    ratio,
+    pct,
     status,
     href,
   );
@@ -55,13 +54,14 @@ function formatNotionProjectLine(
 
 function formatLinearProjectLine(project: LinearProject, domain: OpsDomain): LinkedLine {
   const name = displayProjectName(domain, project.name);
+  const { ratio, pct } = resolveProjectProgress(null, project);
 
   return linkedWithProgress(
     "  ",
     name,
     "",
-    project.progress / 100,
-    project.progress,
+    ratio,
+    pct,
     project.status,
     project.url,
   );

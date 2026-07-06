@@ -4,6 +4,7 @@ import { isEligibleForFocus } from "@/lib/sync/focus";
 import {
   getDate,
   getFormulaNumber,
+  getNumber,
   getRichText,
   getRollupNumber,
   getSelect,
@@ -112,6 +113,11 @@ async function fetchProjects(): Promise<NotionProject[]> {
         linearUrl: getUrl(props, "Linear project", "Linear"),
         priority: getSelect(props, "Priority"),
         target: getDate(props, "End date", "Target", "Due", "Start date"),
+        progress: normalizeProgressPercent(
+          getFormulaNumber(props, "Progress %", "Progress") ??
+            getRollupNumber(props, "Progress %", "Progress") ??
+            getNumber(props, "Progress %", "Progress"),
+        ),
       };
     })
     .filter((project) => project.name !== "(untitled)");
