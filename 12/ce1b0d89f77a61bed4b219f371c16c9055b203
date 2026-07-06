@@ -1,0 +1,77 @@
+src/lib/config.ts
+  s_30b37c58ec179b::t_e33fcdb83072bb 14
+src/lib/domains.ts
+  s_30b37c58ec179b::t_1f62d25bc1672c 61-64,72
+  s_30b37c58ec179b::t_82245145b3719f 3-17,26-40,49-60,65-71,73,112
+  s_30b37c58ec179b::t_67a36fa1b7655e 41-48
+  s_30b37c58ec179b::t_eddcd6d896e305 1,18-25,74-111
+  s_30b37c58ec179b::t_196d122472caf2 2
+src/lib/ascii/line.ts
+  s_30b37c58ec179b::t_8f4249ac221895 15-16,32-36,52-53
+  s_30b37c58ec179b::t_06af3ea390a9ad 76-77
+  s_30b37c58ec179b::t_61bbf4220bbc31 1-2,18,22-23,39-51,55-64,67,72-74
+  s_30b37c58ec179b::t_df2bf18f8450f2 3-5,8-10,14,17,19,27,30-31,68,70-71,78-87,89
+  s_30b37c58ec179b::t_a540eba7f45f10 6-7,11-13,20-21,24-26,28-29,37-38,54,65-66,69,75,88
+src/types/ops.ts
+  s_30b37c58ec179b::t_30e0ea6ba4635f 62
+  s_30b37c58ec179b::t_aef8bd93106c21 40
+src/components/TerminalOutput.tsx
+  s_30b37c58ec179b::t_a103451dc24420 16
+  s_30b37c58ec179b::t_5a89d173ffc2fc 18-29,52-54,61-63,65,101-113,117-118
+  s_30b37c58ec179b::t_90986f2a01b583 8-9,32,41-51,55-56,59-60,64,66-96,115
+  s_30b37c58ec179b::t_ad947619349442 7
+src/lib/loader-phases.ts
+  s_30b37c58ec179b::t_ddeff135a8e77b 23,25
+src/lib/notion/client.ts
+  s_30b37c58ec179b::t_e0f3684c3a60a3 86-112
+  s_30b37c58ec179b::t_6abe9eb3fe5106 113
+  s_30b37c58ec179b::t_79e71cffc15e41 173
+src/lib/sync/focus.ts
+  s_30b37c58ec179b::t_f70a017446f022 45-46
+src/types/terminal.ts
+  s_30b37c58ec179b::t_deaf1e588e8a8c 4-7
+  s_30b37c58ec179b::t_2090635a6451cb 14-15
+  s_30b37c58ec179b::t_fa28e0870fedf5 3
+  s_30b37c58ec179b::t_ac1767929377d0 16-19
+src/lib/sync/aggregate.ts
+  s_30b37c58ec179b::t_a917ded73a8705 3
+  s_30b37c58ec179b::t_20d22bdd97b7c7 50-53,55
+  s_30b37c58ec179b::t_960aef85d3f7d1 34
+src/lib/ascii/render.ts
+  s_30b37c58ec179b::t_5c46945a084c81 1,4,9,62,83,96,119-123,149-155
+  s_30b37c58ec179b::t_6c58d459a9584f 40-42,45
+  s_30b37c58ec179b::t_feafbb870f6990 68-72
+  s_30b37c58ec179b::t_64c97f9a94bf6d 44
+  s_30b37c58ec179b::t_c24d40c6c9f032 39,43,46-47
+  s_30b37c58ec179b::t_83c707b19a66e0 2
+  s_30b37c58ec179b::t_398205bafc5c8a 3
+  s_30b37c58ec179b::t_b4340d582138c3 33-38
+  s_30b37c58ec179b::t_1cee06da1c194a 128
+src/lib/ascii/columns.ts
+  s_30b37c58ec179b::t_8e34b7857ce0b6 1,3-4,6-8,10-11,13-14,16-21,23-25,28-29,32-34,37-51
+  s_30b37c58ec179b::t_91b3332891422d 2,5,9,12,15,22,26-27,30-31,35-36,52
+src/lib/ascii/projects.ts
+  s_30b37c58ec179b::t_a7bca8600ac5bc 2
+  s_30b37c58ec179b::t_40657c7688c905 1,8,19-21,23-32
+  s_30b37c58ec179b::t_5c72e11b9ac405 15,17,22,67,79
+  s_30b37c58ec179b::t_6e652d12a7099d 4,18,40-42,95
+  s_30b37c58ec179b::t_7b872c3721b0d5 3,5-7,9-14,16,33-39,52-55,59,62-66,68-78,80-94,96-99
+  s_30b37c58ec179b::t_491625da565367 43,47-51,60-61
+  s_30b37c58ec179b::t_369a7b4bc2dab6 44-46,56-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "12ce1b0d89f77a61bed4b219f371c16c9055b203",
+  "prompts": {},
+  "sessions": {
+    "s_30b37c58ec179b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cf84b510-edd8-4419-9e86-48f991ff9434",
+        "model": "composer-2.5"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
