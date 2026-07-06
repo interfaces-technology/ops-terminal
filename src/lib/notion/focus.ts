@@ -64,7 +64,7 @@ function normalizeHeading(text: string): string {
 async function notionFetch(path: string): Promise<Response> {
   return fetch(`${NOTION_API}${path}`, {
     headers: notionHeaders(),
-    next: { revalidate: 0 },
+    cache: "no-store",
   });
 }
 

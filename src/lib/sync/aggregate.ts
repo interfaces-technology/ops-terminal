@@ -84,7 +84,11 @@ export async function getOpsState(forceSync = false): Promise<OpsSnapshot> {
   }
 
   const cached = await readCache();
-  if (cached && isValidSnapshot(cached)) return cached;
+  if (cached && isValidSnapshot(cached)) {
+    // Retry when a prior sync left warnings (e.g. page not yet shared or token rotated).
+    if (cached.errors.length > 0) return syncOpsState();
+    return cached;
+  }
 
   return syncOpsState();
 }
