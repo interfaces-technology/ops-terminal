@@ -1,21 +1,31 @@
 # Ops Terminal
 
-ASCII ops dashboard for [The Interfaces Company](https://github.com/interfaces-technology). **One unified snapshot** from **Notion** (Focus, Horizon, Projects, Milestones, Sprints, Ship Log).
+ASCII company snapshot for [The Interfaces Company](https://github.com/interfaces-technology). **Read-only mirror** of Notion — your daily surface instead of the Focus page.
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ FOCUS · milestones & sprints                                                 ║
+║ TODAY · in progress                                                          ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║ [1] ▶ Settings page                                                          ║
-║ [2] ▶ Play brand refresh                                                     ║
-║ [3] ▶ Company ops terminal                                                   ║
+║ [Company · Creative] Draft Interfaces visual principles v0                     ║
+║ [Play · Code] Agent: Review agent Play audit                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
+
+## What it shows
+
+| Section | Source |
+|---------|--------|
+| **TODAY** | In-progress Tasks across all teamspaces |
+| **HORIZON** | Status: Now + related Milestones |
+| **DOMAINS** | Company · Studio · Lab · Play · Workbench — Active projects + open task counts |
+| **SHIP LOG** | Recent ships from Notion |
+
+Notion stays the editor (Tasks, Projects, Ship Log). The terminal is the view.
 
 ## Stack
 
 - Next.js 16 (App Router)
-- Notion REST API (Focus page, Horizon, Projects, Milestones, Sprints, Ship Log)
+- Notion REST API (Horizon, Milestones, Projects, Tasks × 5 spaces, Ship Log)
 - Upstash Redis cache on Vercel (local `.data/cache.json` fallback)
 
 ## Setup
@@ -51,18 +61,12 @@ Without Redis env vars, the app falls back to the local file cache (works in dev
 | `/api/sync` | POST | Fetch Notion → write unified cache |
 | `/api/state` | GET | Return cached snapshot (`?force=1` to sync first) |
 
-## What it shows
-
-- **Focus** — 3 slots from Notion milestones & sprints
-- **Horizon** — committed aims (Status: Now)
-- **Domains** — Notion projects grouped by Company · Lab · Play · Workbench
-- **Ship Log** — recent ships from Notion
-
 ## Ops rules (Company OS)
 
 - Read-only mirror — does not write to Notion
 - Database IDs match `Interfaces-Company/docs/notion.md`
-- Retired sources (Linear, NOW, Work Queue, Resume, Cycles) are not used
+- Replaces the Notion Focus page as the daily snapshot
+- Retired sources (Linear, Focus page slots, Work Queue, Resume, Cycles) are not used
 
 ## Repo
 

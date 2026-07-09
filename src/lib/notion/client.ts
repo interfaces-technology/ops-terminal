@@ -1,10 +1,9 @@
-import { NOTION_DATABASES } from "@/lib/config";
-import { fetchFocusPage } from "@/lib/notion/focus";
-import { isEligibleForFocus } from "@/lib/sync/focus";
+import { NOTION_DATABASES, NOTION_TASK_DATABASES } from "@/lib/config";
 import {
   getDate,
   getFormulaNumber,
   getNumber,
+  getRelationUrls,
   getRichText,
   getRollupNumber,
   getSelect,
@@ -13,12 +12,12 @@ import {
   getUrl,
 } from "@/lib/notion/parse";
 import type {
-  NotionFocus,
   NotionHorizonItem,
   NotionMilestone,
   NotionProject,
   NotionShipLogEntry,
-  NotionSprint,
+  NotionTask,
+  TaskSpace,
 } from "@/types/ops";
 
 import { NOTION_API, notionHeaders } from "@/lib/notion/auth";
@@ -35,9 +34,14 @@ interface QueryResponse {
   next_cursor: string | null;
 }
 
-const DATABASE_LABELS = Object.fromEntries(
-  Object.entries(NOTION_DATABASES).map(([name, id]) => [id, name]),
-) as Record<string, keyof typeof NOTION_DATABASES>;
+const DATABASE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(NOTION_DATABASES).map(([name, id]) => [id, name]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(NOTION_TASK_DATABASES).map(([name, id]) => [id, `tasks:${name}`]),
+  ),
+};
 
 async function notionQuery(
   databaseId: string,
@@ -80,6 +84,10 @@ async function notionQuery(
   return pages;
 }
 
+function pageUrl(page: NotionPage): string {
+  return page.url ?? `https://notion.so/${page.id.replace(/-/g, "")}`;
+}
+
 function isNowStatus(status: string | null): boolean {
   return status?.toLowerCase() === "now";
 }
@@ -92,6 +100,51 @@ function isActivePhase(phase: string | null, status: string | null): boolean {
 
 export function isActiveNotionProject(project: NotionProject): boolean {
   return isActivePhase(project.phase, project.status);
+}
+
+function normalizeProgressPercent(value: number | null): number | null {
+  if (value == null) return null;
+  if (value <= 1) return Math.round(value * 100);
+  return Math.round(value);
+}
+
+function mapTaskPage(page: NotionPage, space: TaskSpace): NotionTask {
+  const props = page.properties;
+  return {
+    name: getTitle(props, "Task name", "Name", "Title") ?? "(untitled)",
+    status: getStatus(props, "Status") ?? "Not started",
+    type: getSelect(props, "Type"),
+    product: getSelect(props, "Product"),
+    url: pageUrl(page),
+    priority: getSelect(props, "Priority"),
+    repo: getUrl(props, "Repo"),
+    pr: getUrl(props, "PR"),
+    space,
+  };
+}
+
+const PRIORITY_RANK: Record<string, number> = {
+  High: 0,
+  Medium: 1,
+  Low: 2,
+};
+
+export function sortTasksForToday(tasks: NotionTask[]): NotionTask[] {
+  return [...tasks].sort((a, b) => {
+    const rankA = PRIORITY_RANK[a.priority ?? ""] ?? 9;
+    const rankB = PRIORITY_RANK[b.priority ?? ""] ?? 9;
+    if (rankA !== rankB) return rankA - rankB;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export function isOpenTask(task: NotionTask): boolean {
+  const status = task.status.toLowerCase();
+  return status !== "done" && status !== "archived";
+}
+
+export function isInProgressTask(task: NotionTask): boolean {
+  return task.status.toLowerCase() === "in progress";
 }
 
 async function fetchProjects(): Promise<NotionProject[]> {
@@ -110,6 +163,7 @@ async function fetchProjects(): Promise<NotionProject[]> {
         phase,
         status,
         outcome: getRichText(props, "Outcome"),
+        url: pageUrl(page),
         linkUrl: getUrl(props, "Linear project", "Linear", "URL", "Link"),
         priority: getSelect(props, "Priority"),
         target: getDate(props, "End date", "Target", "Due", "Start date"),
@@ -132,20 +186,50 @@ async function fetchHorizon(): Promise<NotionHorizonItem[]> {
     sorts: [{ property: "Target", direction: "ascending" }],
   });
 
-  return pages
-    .map((page) => {
-      const props = page.properties;
-      const status = getStatus(props, "Status");
-      if (!isNowStatus(status)) return null;
+  const items: NotionHorizonItem[] = [];
 
-      return {
-        aim: getTitle(props, "Item", "Name", "Title") ?? "(untitled)",
-        area: getSelect(props, "Area", "Product"),
-        target: getDate(props, "Target"),
-        linkUrl: getUrl(props, "Linear initiative", "Linear Initiative", "Linear", "URL", "Link"),
-      };
-    })
-    .filter((item): item is NotionHorizonItem => item !== null);
+  for (const page of pages) {
+    const props = page.properties;
+    const status = getStatus(props, "Status");
+    if (!isNowStatus(status)) continue;
+
+    items.push({
+      aim: getTitle(props, "Item", "Name", "Title") ?? "(untitled)",
+      area: getSelect(props, "Area", "Product"),
+      target: getDate(props, "Target"),
+      url: pageUrl(page),
+      linkUrl: getUrl(props, "Linear initiative", "Linear Initiative", "Linear", "URL", "Link"),
+    });
+  }
+
+  return items;
+}
+
+async function fetchMilestones(): Promise<NotionMilestone[]> {
+  const pages = await notionQuery(NOTION_DATABASES.milestones, {
+    sorts: [{ property: "Target date", direction: "ascending" }],
+  });
+
+  const milestones: NotionMilestone[] = [];
+
+  for (const page of pages) {
+    const props = page.properties;
+    const name = getTitle(props, "Milestone", "Name", "Title") ?? "(untitled)";
+    if (name === "(untitled)") continue;
+
+    const horizonUrls = getRelationUrls(props, "Horizon");
+
+    milestones.push({
+      name,
+      status: getStatus(props, "Status") ?? "—",
+      product: getSelect(props, "Product"),
+      url: pageUrl(page),
+      targetDate: getDate(props, "Target date", "Target", "Due"),
+      horizonUrl: horizonUrls[0] ?? null,
+    });
+  }
+
+  return milestones;
 }
 
 async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
@@ -165,93 +249,53 @@ async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
   });
 }
 
-function normalizeProgressPercent(value: number | null): number | null {
-  if (value == null) return null;
-  if (value <= 1) return Math.round(value * 100);
-  return Math.round(value);
+async function fetchTasksForSpace(space: TaskSpace, databaseId: string): Promise<NotionTask[]> {
+  const pages = await notionQuery(databaseId);
+  return pages.map((page) => mapTaskPage(page, space));
 }
 
-async function fetchMilestones(): Promise<NotionMilestone[]> {
-  const pages = await notionQuery(NOTION_DATABASES.milestones);
+async function fetchAllTasks(): Promise<{ tasks: NotionTask[]; errors: string[] }> {
+  const entries = Object.entries(NOTION_TASK_DATABASES) as [TaskSpace, string][];
+  const results = await Promise.allSettled(
+    entries.map(([space, id]) => fetchTasksForSpace(space, id)),
+  );
 
-  return pages
-    .map((page) => {
-      const props = page.properties;
-      const status = getStatus(props, "Status");
-      const name = getTitle(props, "Milestone", "Name", "Title") ?? "(untitled)";
-      if (!isEligibleForFocus({ name, status })) return null;
+  const tasks: NotionTask[] = [];
+  const errors: string[] = [];
 
-      return {
-        name,
-        status: status ?? "—",
-        product: getSelect(props, "Product"),
-        url: page.url ?? `https://notion.so/${page.id.replace(/-/g, "")}`,
-        targetDate: getDate(props, "Target date", "Target", "Due"),
-        progress: normalizeProgressPercent(getFormulaNumber(props, "Progress %", "Progress")),
-      };
-    })
-    .filter((milestone): milestone is NotionMilestone => milestone !== null);
-}
+  for (const [index, result] of results.entries()) {
+    const space = entries[index]?.[0] ?? "company";
+    if (result.status === "fulfilled") {
+      tasks.push(...result.value);
+      continue;
+    }
+    errors.push(
+      `tasks:${space}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`,
+    );
+  }
 
-const ACTIVE_SPRINT_STATUSES = new Set(["Current", "Next", "Future"]);
-
-async function fetchSprints(): Promise<NotionSprint[]> {
-  const pages = await notionQuery(NOTION_DATABASES.sprints);
-
-  return pages
-    .map((page) => {
-      const props = page.properties;
-      const status = getStatus(props, "Sprint status", "Status");
-      if (!status || !ACTIVE_SPRINT_STATUSES.has(status)) return null;
-
-      const name = getTitle(props, "Sprint name", "Name", "Title") ?? "(untitled)";
-      if (!isEligibleForFocus({ name, status })) return null;
-
-      const date = props.Dates as { type?: string; date?: { start?: string; end?: string } } | undefined;
-      const startDate = date?.type === "date" ? (date.date?.start ?? null) : getDate(props, "Dates", "Start date");
-      const endDate = date?.type === "date" ? (date.date?.end ?? null) : null;
-
-      return {
-        name,
-        status,
-        url: page.url ?? `https://notion.so/${page.id.replace(/-/g, "")}`,
-        startDate,
-        endDate,
-        progress: normalizeProgressPercent(getRollupNumber(props, "Completed tasks")),
-      };
-    })
-    .filter((sprint): sprint is NotionSprint => sprint !== null);
+  return { tasks, errors };
 }
 
 export async function fetchNotionData(): Promise<{
-  focus: NotionFocus;
   horizon: NotionHorizonItem[];
+  milestones: NotionMilestone[];
   notionProjects: NotionProject[];
-  notionMilestones: NotionMilestone[];
-  notionSprints: NotionSprint[];
+  tasks: NotionTask[];
   shipLog: NotionShipLogEntry[];
   errors: string[];
 }> {
-  const emptyFocus: NotionFocus = {
-    slots: [],
-    lastSession: null,
-    notes: null,
-    thisWeek: null,
-  };
-
   const [
-    focusResult,
     horizonResult,
-    projectsResult,
     milestonesResult,
-    sprintsResult,
+    projectsResult,
+    tasksResult,
     shipLogResult,
   ] = await Promise.allSettled([
-    fetchFocusPage(),
     fetchHorizon(),
-    fetchProjects(),
     fetchMilestones(),
-    fetchSprints(),
+    fetchProjects(),
+    fetchAllTasks(),
     fetchShipLog(),
   ]);
 
@@ -262,19 +306,28 @@ export async function fetchNotionData(): Promise<{
     }
   };
 
-  label(focusResult, "Focus");
   label(horizonResult, "Horizon");
-  label(projectsResult, "Projects");
   label(milestonesResult, "Milestones");
-  label(sprintsResult, "Sprints");
+  label(projectsResult, "Projects");
+  label(tasksResult, "Tasks");
   label(shipLogResult, "Ship Log");
 
+  const tasks =
+    tasksResult.status === "fulfilled"
+      ? tasksResult.value.tasks
+      : [];
+
+  if (tasksResult.status === "fulfilled") {
+    for (const message of tasksResult.value.errors) {
+      errors.push(message);
+    }
+  }
+
   return {
-    focus: focusResult.status === "fulfilled" ? focusResult.value : emptyFocus,
     horizon: horizonResult.status === "fulfilled" ? horizonResult.value : [],
+    milestones: milestonesResult.status === "fulfilled" ? milestonesResult.value : [],
     notionProjects: projectsResult.status === "fulfilled" ? projectsResult.value : [],
-    notionMilestones: milestonesResult.status === "fulfilled" ? milestonesResult.value : [],
-    notionSprints: sprintsResult.status === "fulfilled" ? sprintsResult.value : [],
+    tasks,
     shipLog: shipLogResult.status === "fulfilled" ? shipLogResult.value : [],
     errors,
   };

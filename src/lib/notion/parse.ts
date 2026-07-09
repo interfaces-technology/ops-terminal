@@ -100,3 +100,17 @@ export function getRollupNumber(props: Record<string, NotionProperty>, ...keys: 
   }
   return null;
 }
+
+export function getRelationUrls(
+  props: Record<string, NotionProperty>,
+  ...keys: string[]
+): string[] {
+  for (const key of keys) {
+    const prop = props[key];
+    if (!prop || prop.type !== "relation") continue;
+    const relation = prop.relation as Array<{ id: string }> | undefined;
+    if (!relation?.length) continue;
+    return relation.map((entry) => `https://notion.so/${entry.id.replace(/-/g, "")}`);
+  }
+  return [];
+}

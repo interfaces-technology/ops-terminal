@@ -1,14 +1,20 @@
 import { readCache, writeCache } from "@/lib/cache/store";
-import { fetchNotionData } from "@/lib/notion/client";
-import { buildFocusSlots } from "@/lib/sync/focus";
-import type { NotionMilestone, NotionSprint, OpsSnapshot } from "@/types/ops";
+import { TODAY_TASK_LIMIT } from "@/lib/config";
+import {
+  fetchNotionData,
+  isInProgressTask,
+  sortTasksForToday,
+} from "@/lib/notion/client";
+import type { OpsSnapshot } from "@/types/ops";
 
 function emptySnapshot(): OpsSnapshot {
   return {
     syncedAt: new Date().toISOString(),
-    focus: { slots: [], lastSession: null, notes: null, thisWeek: null },
+    today: [],
     horizon: [],
+    milestones: [],
     notionProjects: [],
+    tasks: [],
     shipLog: [],
     errors: [],
   };
@@ -16,26 +22,18 @@ function emptySnapshot(): OpsSnapshot {
 
 export async function syncOpsState(): Promise<OpsSnapshot> {
   const snapshot = emptySnapshot();
-  let focusNarrative = {
-    lastSession: null as string | null,
-    notes: null as string | null,
-    thisWeek: null as string | null,
-  };
-  let notionMilestones: NotionMilestone[] = [];
-  let notionSprints: NotionSprint[] = [];
 
   try {
     const data = await fetchNotionData();
     snapshot.horizon = data.horizon;
+    snapshot.milestones = data.milestones;
     snapshot.notionProjects = data.notionProjects;
+    snapshot.tasks = data.tasks;
     snapshot.shipLog = data.shipLog;
-    notionMilestones = data.notionMilestones;
-    notionSprints = data.notionSprints;
-    focusNarrative = {
-      lastSession: data.focus.lastSession,
-      notes: data.focus.notes,
-      thisWeek: data.focus.thisWeek,
-    };
+    snapshot.today = sortTasksForToday(data.tasks.filter(isInProgressTask)).slice(
+      0,
+      TODAY_TASK_LIMIT,
+    );
     for (const message of data.errors) {
       snapshot.errors.push(`Notion: ${message}`);
     }
@@ -43,22 +41,19 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
     snapshot.errors.push(`Notion: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  snapshot.focus = {
-    slots: buildFocusSlots(notionMilestones, notionSprints),
-    ...focusNarrative,
-  };
-
   await writeCache(snapshot);
   return snapshot;
 }
 
 function isValidSnapshot(snapshot: OpsSnapshot): boolean {
   return (
-    snapshot.focus != null &&
+    Array.isArray(snapshot.today) &&
     Array.isArray(snapshot.horizon) &&
+    Array.isArray(snapshot.milestones) &&
     Array.isArray(snapshot.notionProjects) &&
+    Array.isArray(snapshot.tasks) &&
     Array.isArray(snapshot.shipLog) &&
-    !("linear" in snapshot)
+    !("focus" in snapshot)
   );
 }
 
@@ -69,7 +64,6 @@ export async function getOpsState(forceSync = false): Promise<OpsSnapshot> {
 
   const cached = await readCache();
   if (cached && isValidSnapshot(cached)) {
-    // Retry when a prior sync left warnings (e.g. page not yet shared or token rotated).
     if (cached.errors.length > 0) return syncOpsState();
     return cached;
   }

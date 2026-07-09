@@ -1,7 +1,7 @@
 import { box, pad } from "@/lib/ascii/box";
 import { formatProjectsByDomain } from "@/lib/ascii/projects";
 import { OPS_DOMAINS } from "@/lib/domains";
-import { formatRowText, linked, linkedWithProgress } from "@/lib/ascii/line";
+import { formatRowText, linked } from "@/lib/ascii/line";
 import { TERMINAL_WIDTH_DESKTOP, terminalInner } from "@/lib/terminal-width";
 import type { OpsSnapshot } from "@/types/ops";
 import type { LinkedLine, TerminalDashboard, TerminalSection } from "@/types/terminal";
@@ -23,25 +23,35 @@ function formatShipDate(iso: string | null): string {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-function formatFocus(snapshot: OpsSnapshot): TerminalSection {
-  const slots = [1, 2, 3].map((slotNum) => {
-    const slot = snapshot.focus.slots.find((entry) => entry.slot === slotNum);
-    if (!slot?.label) {
-      return linked(`[${slotNum}] (empty)`);
-    }
+function formatToday(snapshot: OpsSnapshot): TerminalSection {
+  if (snapshot.today.length === 0) {
+    return {
+      title: "TODAY · in progress",
+      lines: [{ text: "No tasks in progress — mark Tasks In progress in Notion" }],
+    };
+  }
 
-    return linkedWithProgress(
-      `[${slotNum}] ▶ `,
-      slot.label,
-      "",
-      (slot.progress ?? 0) / 100,
-      slot.progress,
-      slot.status ?? "—",
-      slot.url,
-    );
+  const lines = snapshot.today.map((task) => {
+    const type = task.type ? ` · ${task.type}` : "";
+    const product = task.product ?? task.space;
+    return linked(`[${product}${type}] ${task.name}`, task.url);
   });
 
-  return { title: "FOCUS · milestones & sprints", lines: slots };
+  return { title: "TODAY · in progress", lines };
+}
+
+function milestonesForHorizon(snapshot: OpsSnapshot, horizonUrl: string | null): string[] {
+  if (!horizonUrl) {
+    return snapshot.milestones.map((milestone) => milestone.name);
+  }
+
+  const normalized = horizonUrl.replace(/-/g, "");
+  return snapshot.milestones
+    .filter((milestone) => {
+      if (!milestone.horizonUrl) return true;
+      return milestone.horizonUrl.replace(/-/g, "").includes(normalized.slice(-32));
+    })
+    .map((milestone) => milestone.name);
 }
 
 function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
@@ -49,12 +59,18 @@ function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
     return { title: "HORIZON · Now", lines: [{ text: "No committed aims (Status: Now)" }] };
   }
 
-  const lines = snapshot.horizon.map((item) => {
+  const lines: LinkedLine[] = [];
+
+  for (const item of snapshot.horizon) {
     const target = formatTargetDate(item.target);
     const targetText = target ? pad(target, 12, "right") : pad("", 12);
     const area = item.area ? ` · ${item.area}` : "";
-    return linked(`${item.aim}${area}  ${targetText}`, item.linkUrl);
-  });
+    lines.push(linked(`${item.aim}${area}  ${targetText}`, item.url ?? item.linkUrl));
+
+    for (const milestone of milestonesForHorizon(snapshot, item.url)) {
+      lines.push({ text: `  ${milestone}` });
+    }
+  }
 
   return { title: "HORIZON · Now", lines };
 }
@@ -106,7 +122,7 @@ function lineDisplayText(line: LinkedLine): string {
 
 export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboard {
   const sections: TerminalSection[] = [
-    formatFocus(snapshot),
+    formatToday(snapshot),
     formatHorizon(snapshot),
     formatProjects(snapshot),
     formatShipLog(snapshot),

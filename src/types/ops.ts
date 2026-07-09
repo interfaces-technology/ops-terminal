@@ -1,13 +1,24 @@
-export type Product = "Play" | "Workbench" | "Labs" | "Company";
+export type Product =
+  | "Company"
+  | "Studio"
+  | "Lab"
+  | "Play"
+  | "Workbench"
+  | "Labs"
+  | "Partnerships";
 
-export interface NotionFocusSlot {
-  slot: 1 | 2 | 3;
-  label: string;
-  area: string | null;
-  url: string | null;
-  status: string | null;
-  progress: number | null;
-  kind: "milestone" | "sprint";
+export type TaskSpace = "company" | "studio" | "lab" | "play" | "workbench";
+
+export interface NotionTask {
+  name: string;
+  status: string;
+  type: string | null;
+  product: string | null;
+  url: string;
+  priority: string | null;
+  repo: string | null;
+  pr: string | null;
+  space: TaskSpace;
 }
 
 export interface NotionMilestone {
@@ -16,29 +27,14 @@ export interface NotionMilestone {
   product: string | null;
   url: string;
   targetDate: string | null;
-  progress: number | null;
-}
-
-export interface NotionSprint {
-  name: string;
-  status: string;
-  url: string;
-  startDate: string | null;
-  endDate: string | null;
-  progress: number | null;
-}
-
-export interface NotionFocus {
-  slots: NotionFocusSlot[];
-  lastSession: string | null;
-  notes: string | null;
-  thisWeek: string | null;
+  horizonUrl: string | null;
 }
 
 export interface NotionHorizonItem {
   aim: string;
   area: string | null;
   target: string | null;
+  url: string | null;
   /** Optional link from Notion (often a former Linear initiative URL). */
   linkUrl: string | null;
 }
@@ -50,6 +46,7 @@ export interface NotionProject {
   phase: string | null;
   status: string | null;
   outcome: string | null;
+  url: string | null;
   /** Optional link from Notion (often a former Linear project URL). */
   linkUrl: string | null;
   priority: string | null;
@@ -68,9 +65,11 @@ export interface NotionShipLogEntry {
 
 export interface OpsSnapshot {
   syncedAt: string;
-  focus: NotionFocus;
+  today: NotionTask[];
   horizon: NotionHorizonItem[];
+  milestones: NotionMilestone[];
   notionProjects: NotionProject[];
+  tasks: NotionTask[];
   shipLog: NotionShipLogEntry[];
   errors: string[];
 }
