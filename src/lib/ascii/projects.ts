@@ -4,13 +4,11 @@ import {
   displayProjectName,
   domainProgressRatio,
   domainProjectCounts,
-  linearOnlyProjectsForDomain,
   notionProjectsForDomain,
   OPS_DOMAINS,
   type OpsDomain,
 } from "@/lib/domains";
-import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
-import type { LinearProject, NotionProject, OpsSnapshot } from "@/types/ops";
+import type { NotionProject, OpsSnapshot } from "@/types/ops";
 import type { LinkedLine } from "@/types/terminal";
 
 function formatDomainHeading(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine {
@@ -30,41 +28,13 @@ function formatDomainHeading(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLi
   };
 }
 
-function formatNotionProjectLine(
-  project: NotionProject,
-  domain: OpsDomain,
-  linearProjects: LinearProject[],
-): LinkedLine {
-  const linearProject = findLinearProject(project, linearProjects);
-  const href = linearProject?.url ?? project.linearUrl ?? null;
-  const status = linearProject?.status ?? project.status ?? project.phase ?? "—";
+function formatNotionProjectLine(project: NotionProject, domain: OpsDomain): LinkedLine {
+  const status = project.status ?? project.phase ?? "—";
   const name = displayProjectName(domain, project.name);
-  const { ratio, pct } = resolveProjectProgress(project, linearProject);
+  const pct = project.progress;
+  const ratio = pct != null ? pct / 100 : 0;
 
-  return linkedWithProgress(
-    "  ",
-    name,
-    "",
-    ratio,
-    pct,
-    status,
-    href,
-  );
-}
-
-function formatLinearProjectLine(project: LinearProject, domain: OpsDomain): LinkedLine {
-  const name = displayProjectName(domain, project.name);
-  const { ratio, pct } = resolveProjectProgress(null, project);
-
-  return linkedWithProgress(
-    "  ",
-    name,
-    "",
-    ratio,
-    pct,
-    project.status,
-    project.url,
-  );
+  return linkedWithProgress("  ", name, "", ratio, pct, status, project.linkUrl);
 }
 
 function formatDomainBlock(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine[] {
@@ -72,15 +42,10 @@ function formatDomainBlock(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine
 
   const notionProjects = notionProjectsForDomain(domain, snapshot.notionProjects);
   for (const project of notionProjects) {
-    lines.push(formatNotionProjectLine(project, domain, snapshot.linear.projects));
+    lines.push(formatNotionProjectLine(project, domain));
   }
 
-  const linearOnly = linearOnlyProjectsForDomain(domain, snapshot);
-  for (const project of linearOnly) {
-    lines.push(formatLinearProjectLine(project, domain));
-  }
-
-  if (notionProjects.length === 0 && linearOnly.length === 0) {
+  if (notionProjects.length === 0) {
     lines.push({ text: "  (no projects)" });
   }
 
@@ -88,15 +53,15 @@ function formatDomainBlock(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine
 }
 
 export function formatProjectsByDomain(snapshot: OpsSnapshot): LinkedLine[] {
+  if (snapshot.notionProjects.length === 0) {
+    return [{ text: "No projects synced" }];
+  }
+
   const lines: LinkedLine[] = [];
 
   for (const [index, domain] of OPS_DOMAINS.entries()) {
     if (index > 0) lines.push({ text: "" });
     lines.push(...formatDomainBlock(domain, snapshot));
-  }
-
-  if (snapshot.notionProjects.length === 0 && snapshot.linear.projects.length === 0) {
-    return [{ text: "No projects synced" }];
   }
 
   return lines;

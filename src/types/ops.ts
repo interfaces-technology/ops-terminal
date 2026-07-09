@@ -1,53 +1,11 @@
 export type Product = "Play" | "Workbench" | "Labs" | "Company";
 
-export interface LinearMilestone {
-  id: string;
-  name: string;
-  status: string;
-  progress: number;
-  targetDate: string | null;
-  projectName: string;
-  projectUrl: string;
-  teamKey: string;
-}
-
-export interface LinearIssue {
-  id: string;
-  identifier: string;
-  title: string;
-  state: string;
-  stateType: string;
-  team: string;
-  teamKey: string;
-  milestoneName: string | null;
-  projectName: string | null;
-  priority: number;
-  url: string;
-}
-
-export interface LinearProject {
-  id: string;
-  name: string;
-  teamKey: string;
-  progress: number;
-  status: string;
-  url: string;
-}
-
-export interface LinearTeamStats {
-  teamKey: string;
-  todo: number;
-  inProgress: number;
-  done: number;
-}
-
 export interface NotionFocusSlot {
   slot: 1 | 2 | 3;
   label: string;
   area: string | null;
   url: string | null;
-  linearIdentifier: string | null;
-  linearState: string | null;
+  status: string | null;
   progress: number | null;
   kind: "milestone" | "sprint";
 }
@@ -81,7 +39,8 @@ export interface NotionHorizonItem {
   aim: string;
   area: string | null;
   target: string | null;
-  linearInitiativeUrl: string | null;
+  /** Optional link from Notion (often a former Linear initiative URL). */
+  linkUrl: string | null;
 }
 
 export interface NotionProject {
@@ -91,7 +50,8 @@ export interface NotionProject {
   phase: string | null;
   status: string | null;
   outcome: string | null;
-  linearUrl: string | null;
+  /** Optional link from Notion (often a former Linear project URL). */
+  linkUrl: string | null;
   priority: string | null;
   target: string | null;
   progress: number | null;
@@ -102,7 +62,8 @@ export interface NotionShipLogEntry {
   product: string | null;
   date: string | null;
   summary: string | null;
-  linearUrl: string | null;
+  /** Optional link from Notion (often a former Linear URL). */
+  linkUrl: string | null;
 }
 
 export interface OpsSnapshot {
@@ -111,11 +72,5 @@ export interface OpsSnapshot {
   horizon: NotionHorizonItem[];
   notionProjects: NotionProject[];
   shipLog: NotionShipLogEntry[];
-  linear: {
-    issues: LinearIssue[];
-    projects: LinearProject[];
-    milestones: LinearMilestone[];
-    byTeam: LinearTeamStats[];
-  };
   errors: string[];
 }

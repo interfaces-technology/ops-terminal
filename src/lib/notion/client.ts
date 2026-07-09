@@ -110,7 +110,7 @@ async function fetchProjects(): Promise<NotionProject[]> {
         phase,
         status,
         outcome: getRichText(props, "Outcome"),
-        linearUrl: getUrl(props, "Linear project", "Linear"),
+        linkUrl: getUrl(props, "Linear project", "Linear", "URL", "Link"),
         priority: getSelect(props, "Priority"),
         target: getDate(props, "End date", "Target", "Due", "Start date"),
         progress: normalizeProgressPercent(
@@ -142,7 +142,7 @@ async function fetchHorizon(): Promise<NotionHorizonItem[]> {
         aim: getTitle(props, "Item", "Name", "Title") ?? "(untitled)",
         area: getSelect(props, "Area", "Product"),
         target: getDate(props, "Target"),
-        linearInitiativeUrl: getUrl(props, "Linear initiative", "Linear Initiative", "Linear"),
+        linkUrl: getUrl(props, "Linear initiative", "Linear Initiative", "Linear", "URL", "Link"),
       };
     })
     .filter((item): item is NotionHorizonItem => item !== null);
@@ -160,7 +160,7 @@ async function fetchShipLog(): Promise<NotionShipLogEntry[]> {
       product: getSelect(props, "Product"),
       date: getDate(props, "Date"),
       summary: getRichText(props, "Summary"),
-      linearUrl: getUrl(props, "Linear", "Linear URL"),
+      linkUrl: getUrl(props, "Linear", "Linear URL", "URL", "Link"),
     };
   });
 }

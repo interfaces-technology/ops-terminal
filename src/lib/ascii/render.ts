@@ -36,7 +36,7 @@ function formatFocus(snapshot: OpsSnapshot): TerminalSection {
       "",
       (slot.progress ?? 0) / 100,
       slot.progress,
-      slot.linearState ?? "—",
+      slot.status ?? "—",
       slot.url,
     );
   });
@@ -53,7 +53,7 @@ function formatHorizon(snapshot: OpsSnapshot): TerminalSection {
     const target = formatTargetDate(item.target);
     const targetText = target ? pad(target, 12, "right") : pad("", 12);
     const area = item.area ? ` · ${item.area}` : "";
-    return linked(`${item.aim}${area}  ${targetText}`, item.linearInitiativeUrl);
+    return linked(`${item.aim}${area}  ${targetText}`, item.linkUrl);
   });
 
   return { title: "HORIZON · Now", lines };
@@ -76,7 +76,7 @@ function formatShipLog(snapshot: OpsSnapshot): TerminalSection {
     const date = formatShipDate(entry.date);
     const product = entry.product ? `${entry.product} · ` : "";
     const datePart = date ? `${date} · ` : "";
-    return linked(`${product}${datePart}${entry.title}`, entry.linearUrl);
+    return linked(`${product}${datePart}${entry.title}`, entry.linkUrl);
   });
 
   return { title: "SHIP LOG · recent", lines };

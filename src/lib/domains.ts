@@ -1,18 +1,16 @@
-import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
-import type { LinearProject, LinearTeamStats, NotionProject, OpsSnapshot } from "@/types/ops";
+import type { NotionProject, OpsSnapshot } from "@/types/ops";
 
 export interface OpsDomain {
   id: string;
   label: string;
   notionTags: string[];
-  linearTeamKey: string | null;
 }
 
 export const OPS_DOMAINS: OpsDomain[] = [
-  { id: "company", label: "Company", notionTags: ["company", "pipeline"], linearTeamKey: null },
-  { id: "labs", label: "Lab", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
-  { id: "play", label: "Play", notionTags: ["play"], linearTeamKey: "PLAY" },
-  { id: "workbench", label: "Workbench", notionTags: ["workbench"], linearTeamKey: "WOR" },
+  { id: "company", label: "Company", notionTags: ["company", "pipeline"] },
+  { id: "labs", label: "Lab", notionTags: ["labs", "lab"] },
+  { id: "play", label: "Play", notionTags: ["play"] },
+  { id: "workbench", label: "Workbench", notionTags: ["workbench"] },
 ];
 
 export type ProjectLifecycle = "active" | "completed" | "canceled";
@@ -38,41 +36,6 @@ export function notionProjectsForDomain(
   return projects.filter((project) => notionProjectDomainId(project) === domain.id);
 }
 
-export function teamStatsForDomain(
-  domain: OpsDomain,
-  byTeam: LinearTeamStats[],
-): LinearTeamStats | undefined {
-  if (!domain.linearTeamKey) return undefined;
-  return byTeam.find((team) => team.teamKey === domain.linearTeamKey);
-}
-
-export function linearProjectsForDomain(
-  domain: OpsDomain,
-  projects: LinearProject[],
-): LinearProject[] {
-  if (!domain.linearTeamKey) return [];
-  return projects.filter((project) => project.teamKey === domain.linearTeamKey);
-}
-
-export function isLinearProjectClaimed(
-  linearProject: LinearProject,
-  notionProjects: NotionProject[],
-): boolean {
-  return notionProjects.some((notionProject) => {
-    if (notionProject.linearUrl && notionProject.linearUrl === linearProject.url) return true;
-    return notionProject.name.toLowerCase() === linearProject.name.toLowerCase();
-  });
-}
-
-export function linearOnlyProjectsForDomain(
-  domain: OpsDomain,
-  snapshot: OpsSnapshot,
-): LinearProject[] {
-  return linearProjectsForDomain(domain, snapshot.linear.projects).filter(
-    (project) => !isLinearProjectClaimed(project, snapshot.notionProjects),
-  );
-}
-
 export function classifyNotionProject(project: NotionProject): ProjectLifecycle {
   const phase = project.phase?.toLowerCase() ?? "";
   const status = project.status?.toLowerCase() ?? "";
@@ -82,46 +45,25 @@ export function classifyNotionProject(project: NotionProject): ProjectLifecycle 
   return "active";
 }
 
-export function classifyLinearProject(project: LinearProject): ProjectLifecycle {
-  const status = project.status.toLowerCase();
-  if (status.includes("cancel")) return "canceled";
-  if (status.includes("complete") || status.includes("done")) return "completed";
-  return "active";
-}
-
 export function domainProjectCounts(
   domain: OpsDomain,
   snapshot: OpsSnapshot,
 ): DomainProjectCounts {
   const counts: DomainProjectCounts = { active: 0, completed: 0, canceled: 0 };
-  const notionProjects = notionProjectsForDomain(domain, snapshot.notionProjects);
 
-  for (const notionProject of notionProjects) {
-    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
-    const lifecycle = linearProject
-      ? classifyLinearProject(linearProject)
-      : classifyNotionProject(notionProject);
-    counts[lifecycle]++;
-  }
-
-  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
-    counts[classifyLinearProject(linearProject)]++;
+  for (const project of notionProjectsForDomain(domain, snapshot.notionProjects)) {
+    counts[classifyNotionProject(project)]++;
   }
 
   return counts;
 }
 
-/** Average combined Notion + Linear progress across all projects listed in a domain. */
+/** Average Notion progress across all projects listed in a domain. */
 export function domainProgressRatio(domain: OpsDomain, snapshot: OpsSnapshot): number {
   const progresses: number[] = [];
 
-  for (const notionProject of notionProjectsForDomain(domain, snapshot.notionProjects)) {
-    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
-    progresses.push(resolveProjectProgress(notionProject, linearProject).ratio);
-  }
-
-  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
-    progresses.push(resolveProjectProgress(null, linearProject).ratio);
+  for (const project of notionProjectsForDomain(domain, snapshot.notionProjects)) {
+    if (project.progress != null) progresses.push(project.progress / 100);
   }
 
   if (progresses.length === 0) return 0;
@@ -132,7 +74,6 @@ export function domainProgressRatio(domain: OpsDomain, snapshot: OpsSnapshot): n
 export function displayProjectName(domain: OpsDomain, rawName: string): string {
   const name = rawName.trim();
   const prefixes = new Set<string>([domain.label, ...domain.notionTags]);
-  if (domain.linearTeamKey) prefixes.add(domain.linearTeamKey);
 
   for (const prefix of prefixes) {
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

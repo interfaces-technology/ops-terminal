@@ -1,5 +1,4 @@
 import { readCache, writeCache } from "@/lib/cache/store";
-import { fetchLinearData } from "@/lib/linear/client";
 import { fetchNotionData } from "@/lib/notion/client";
 import { buildFocusSlots } from "@/lib/sync/focus";
 import type { NotionMilestone, NotionSprint, OpsSnapshot } from "@/types/ops";
@@ -11,48 +10,41 @@ function emptySnapshot(): OpsSnapshot {
     horizon: [],
     notionProjects: [],
     shipLog: [],
-    linear: { issues: [], projects: [], milestones: [], byTeam: [] },
     errors: [],
   };
 }
 
 export async function syncOpsState(): Promise<OpsSnapshot> {
   const snapshot = emptySnapshot();
-  let focusNarrative = { lastSession: null as string | null, notes: null as string | null, thisWeek: null as string | null };
+  let focusNarrative = {
+    lastSession: null as string | null,
+    notes: null as string | null,
+    thisWeek: null as string | null,
+  };
   let notionMilestones: NotionMilestone[] = [];
   let notionSprints: NotionSprint[] = [];
 
-  await Promise.all([
-    fetchLinearData()
-      .then((data) => {
-        snapshot.linear = data;
-      })
-      .catch((err: unknown) => {
-        snapshot.errors.push(`Linear: ${err instanceof Error ? err.message : String(err)}`);
-      }),
-    fetchNotionData()
-      .then((data) => {
-        snapshot.horizon = data.horizon;
-        snapshot.notionProjects = data.notionProjects;
-        snapshot.shipLog = data.shipLog;
-        notionMilestones = data.notionMilestones;
-        notionSprints = data.notionSprints;
-        focusNarrative = {
-          lastSession: data.focus.lastSession,
-          notes: data.focus.notes,
-          thisWeek: data.focus.thisWeek,
-        };
-        for (const message of data.errors) {
-          snapshot.errors.push(`Notion: ${message}`);
-        }
-      })
-      .catch((err: unknown) => {
-        snapshot.errors.push(`Notion: ${err instanceof Error ? err.message : String(err)}`);
-      }),
-  ]);
+  try {
+    const data = await fetchNotionData();
+    snapshot.horizon = data.horizon;
+    snapshot.notionProjects = data.notionProjects;
+    snapshot.shipLog = data.shipLog;
+    notionMilestones = data.notionMilestones;
+    notionSprints = data.notionSprints;
+    focusNarrative = {
+      lastSession: data.focus.lastSession,
+      notes: data.focus.notes,
+      thisWeek: data.focus.thisWeek,
+    };
+    for (const message of data.errors) {
+      snapshot.errors.push(`Notion: ${message}`);
+    }
+  } catch (err: unknown) {
+    snapshot.errors.push(`Notion: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   snapshot.focus = {
-    slots: buildFocusSlots(snapshot.linear.milestones, notionMilestones, notionSprints),
+    slots: buildFocusSlots(notionMilestones, notionSprints),
     ...focusNarrative,
   };
 
@@ -65,8 +57,8 @@ function isValidSnapshot(snapshot: OpsSnapshot): boolean {
     snapshot.focus != null &&
     Array.isArray(snapshot.horizon) &&
     Array.isArray(snapshot.notionProjects) &&
-    snapshot.linear?.byTeam != null &&
-    Array.isArray(snapshot.linear.milestones)
+    Array.isArray(snapshot.shipLog) &&
+    !("linear" in snapshot)
   );
 }
 

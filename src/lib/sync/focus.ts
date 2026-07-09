@@ -1,5 +1,4 @@
 import type {
-  LinearMilestone,
   NotionFocusSlot,
   NotionMilestone,
   NotionSprint,
@@ -24,7 +23,7 @@ export function isEligibleForFocus(input: {
   return true;
 }
 
-type FocusSource = "linear-milestone" | "notion-milestone" | "notion-sprint";
+type FocusSource = "notion-milestone" | "notion-sprint";
 
 interface FocusCandidate {
   source: FocusSource;
@@ -38,8 +37,7 @@ interface FocusCandidate {
 
 const SOURCE_TIEBREAK: Record<FocusSource, number> = {
   "notion-sprint": 0,
-  "linear-milestone": 1,
-  "notion-milestone": 2,
+  "notion-milestone": 1,
 };
 
 function urgencyRank(candidate: FocusCandidate): number {
@@ -53,19 +51,6 @@ function urgencyRank(candidate: FocusCandidate): number {
         return 4;
       default:
         return 9;
-    }
-  }
-
-  if (candidate.source === "linear-milestone") {
-    switch (candidate.status) {
-      case "overdue":
-        return 1;
-      case "next":
-        return 2;
-      case "unstarted":
-        return 4;
-      default:
-        return 5;
     }
   }
 
@@ -93,18 +78,6 @@ function compareCandidates(a: FocusCandidate, b: FocusCandidate): number {
   return a.label.localeCompare(b.label);
 }
 
-function toLinearMilestoneCandidate(milestone: LinearMilestone): FocusCandidate {
-  return {
-    source: "linear-milestone",
-    label: milestone.name,
-    area: milestone.teamKey,
-    url: milestone.projectUrl,
-    status: milestone.status,
-    progress: milestone.progress,
-    targetDate: milestone.targetDate,
-  };
-}
-
 function toNotionMilestoneCandidate(milestone: NotionMilestone): FocusCandidate {
   return {
     source: "notion-milestone",
@@ -130,12 +103,10 @@ function toSprintCandidate(sprint: NotionSprint): FocusCandidate {
 }
 
 export function rankFocusCandidates(
-  linearMilestones: LinearMilestone[],
   notionMilestones: NotionMilestone[],
   notionSprints: NotionSprint[],
 ): FocusCandidate[] {
   const candidates: FocusCandidate[] = [
-    ...linearMilestones.map(toLinearMilestoneCandidate),
     ...notionMilestones.map(toNotionMilestoneCandidate),
     ...notionSprints.map(toSprintCandidate),
   ].filter((candidate) => isEligibleForFocus({ name: candidate.label, status: candidate.status }));
@@ -144,19 +115,17 @@ export function rankFocusCandidates(
 }
 
 export function buildFocusSlots(
-  linearMilestones: LinearMilestone[],
   notionMilestones: NotionMilestone[],
   notionSprints: NotionSprint[],
 ): NotionFocusSlot[] {
-  return rankFocusCandidates(linearMilestones, notionMilestones, notionSprints)
+  return rankFocusCandidates(notionMilestones, notionSprints)
     .slice(0, 3)
     .map((candidate, index) => ({
       slot: (index + 1) as 1 | 2 | 3,
       label: candidate.label,
       area: candidate.area,
       url: candidate.url,
-      linearIdentifier: null,
-      linearState: candidate.status,
+      status: candidate.status,
       progress: candidate.progress,
       kind: candidate.source === "notion-sprint" ? "sprint" : "milestone",
     }));
