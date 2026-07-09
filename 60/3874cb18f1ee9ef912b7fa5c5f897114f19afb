@@ -1,0 +1,53 @@
+src/lib/domains.ts
+  s_0c61aacdb60543::t_dffff87ff12ca5 1,10,12-13,54-55
+  s_0c61aacdb60543::t_059ac1b94568e3 11,61,65-66
+src/lib/notion/client.ts
+  s_0c61aacdb60543::t_402dd72d005026 113
+  s_0c61aacdb60543::t_0fc6fc594b8bc8 145
+  s_0c61aacdb60543::t_de61d02d16971e 163
+src/types/ops.ts
+  s_0c61aacdb60543::t_ed3a06a34e183a 8
+  s_0c61aacdb60543::t_1d3d45a0f0a3e8 42-43,53-54,65-66
+src/app/page.tsx
+  s_0c61aacdb60543::t_7d5f1bcd98db6e 23-24
+  s_0c61aacdb60543::t_9f4b94544fee1d 46-47
+README.md
+  s_0c61aacdb60543::t_27690bbd3167c8 42,51,57,63,65,71
+  s_0c61aacdb60543::t_6c3ad2a546a1fe 3,7,9-11,18,56,58
+src/lib/ascii/render.ts
+  s_0c61aacdb60543::t_27ad49f0317ce5 56
+  s_0c61aacdb60543::t_16854d31d98a3a 39
+  s_0c61aacdb60543::t_b61f2f4fb4df8a 79
+src/lib/config.ts
+  s_0c61aacdb60543::t_86c2f716551b49 13
+  s_0c61aacdb60543::t_c51303bf98f93d 12
+src/lib/sync/aggregate.ts
+  s_0c61aacdb60543::t_aed5e13ce39fa6 19-23,27-31,34-44,60-61
+  s_0c61aacdb60543::t_031e9cc7d4fe3b 32-33,47
+src/lib/loader-phases.ts
+  s_0c61aacdb60543::t_3b5e81613667b3 13,20-24
+  s_0c61aacdb60543::t_eb475551ead8fe 5,11-12,14,19
+src/lib/site.ts
+  s_0c61aacdb60543::t_9278876fa6bedb 4,6
+src/lib/sync/focus.ts
+  s_0c61aacdb60543::t_28cdf2ac8211a4 26,40,121,128
+src/lib/ascii/projects.ts
+  s_0c61aacdb60543::t_1bc4d52382a2ba 31,34-35,37,45
+  s_0c61aacdb60543::t_37d0009cd2fd8e 11,32,48,56-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "603874cb18f1ee9ef912b7fa5c5f897114f19afb",
+  "prompts": {},
+  "sessions": {
+    "s_0c61aacdb60543": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2de7181a-0c18-4b11-b3e2-5db0000b3846",
+        "model": "grok-4.5"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
