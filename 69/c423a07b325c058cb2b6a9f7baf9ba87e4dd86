@@ -1,0 +1,48 @@
+src/lib/config.ts
+  s_5baac0d1c8ba24::t_db062d88a94ef2 9-10,15,18,28-30
+  s_5baac0d1c8ba24::t_ed67df0e8db172 8,11-14
+src/lib/notion/parse.ts
+  s_5baac0d1c8ba24::t_2ea60f8e4774b1 103-116
+src/lib/domains.ts
+  s_5baac0d1c8ba24::t_8618ba6c202f10 1,7,11-15,26-34,36,43-53,61-78,81,83-87,113,134-135,140
+  s_5baac0d1c8ba24::t_b26cab44f921be 79-80,82
+  s_5baac0d1c8ba24::t_bd7ce1b6c547f8 136-139
+src/lib/loader-phases.ts
+  s_5baac0d1c8ba24::t_4a1a7bea52c021 5,12-15,20-24
+src/lib/ascii/render.ts
+  s_5baac0d1c8ba24::t_71e2f455463781 4,26-32,34-37,40-54,62-64,68-73,125
+README.md
+  s_5baac0d1c8ba24::t_8304354274509e 3,7,9-10,14-24,28,68-69
+src/lib/notion/client.ts
+  s_5baac0d1c8ba24::t_ced3e6a2e38b3c 189,191-205
+  s_5baac0d1c8ba24::t_9915046d8bdcc8 1,6,19-20,37-44,87-90,105-141,144-149,166,206,209-211,252-254,258-261,263,266,268-271,273-275,282,284,291-292,297-298,311-312,315-316,318,328,330
+  s_5baac0d1c8ba24::t_80502cbf446aa7 213-232
+  s_5baac0d1c8ba24::t_c4e9789c6d4285 317,319-324
+  s_5baac0d1c8ba24::t_81997e630bfa4f 257,264,267,272,277
+  s_5baac0d1c8ba24::t_34f40f769ba0e7 142-143
+  s_5baac0d1c8ba24::t_ed96c251781942 207-208
+  s_5baac0d1c8ba24::t_9ffe6a5279624c 212
+  s_5baac0d1c8ba24::t_ae05c4b244d8b5 325
+src/types/ops.ts
+  s_5baac0d1c8ba24::t_2e08eabc339d5c 1-8,10,12,15,18-21,24,27,29-30,37,49,68,70,72
+src/lib/sync/aggregate.ts
+  s_5baac0d1c8ba24::t_1eec61ea1ad2c5 2-8,13,15,17,29,31,33-36,50,52,54,56
+src/lib/ascii/projects.ts
+  s_5baac0d1c8ba24::t_eb1e7998c25906 1-2,4,8-9,19,28-29,40-54,60-61,65-66,69-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "69c423a07b325c058cb2b6a9f7baf9ba87e4dd86",
+  "prompts": {},
+  "sessions": {
+    "s_5baac0d1c8ba24": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1493a435-6585-4965-b18c-84d1250e0216",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
