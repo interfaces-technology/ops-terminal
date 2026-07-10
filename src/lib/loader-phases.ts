@@ -3,16 +3,16 @@ export const LOADER_BOOT_MS = 2_500;
 
 export const BOOT_LINES = [
   "Initializing ops terminal v0.4.0",
-  "Loading sync modules...",
-  "Establishing secure connections...",
+  "Notion owns work · Cursor executes · GitHub reports · Terminal renders",
+  "Loading Notion sync modules...",
 ] as const;
 
 export const STATUS_MESSAGES = [
-  "Connecting to Notion API...",
+  "Connecting to Notion (source of truth)...",
   "Syncing Horizon & Milestones...",
   "Pulling Tasks across all spaces...",
   "Syncing Projects & Ship Log...",
-  "Rendering company snapshot...",
+  "Rendering Notion snapshot...",
 ] as const;
 
 export const SYNC_STEPS = [

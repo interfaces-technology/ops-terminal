@@ -2,6 +2,19 @@
 
 ASCII company snapshot for [The Interfaces Company](https://github.com/interfaces-technology). **Read-only mirror** of Notion — your daily surface instead of the Focus page.
 
+## How the loop works
+
+| Step | Owner | Role |
+|------|--------|------|
+| **1. Own the work** | Notion | Source of truth for tasks, projects, status, and agent prompts |
+| **2. Execute** | Cursor | Agents pick up Notion tasks and open PRs |
+| **3. Report** | GitHub | PR state syncs back to Notion (Actions secrets only — not app runtime) |
+| **4. Render** | Ops Terminal | Read-only view of Notion — does not write, does not call GitHub |
+
+```
+Notion (work) → Cursor (execute) → GitHub (report) → Notion → Ops Terminal (render)
+```
+
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ TODAY · in progress                                                          ║
@@ -34,9 +47,16 @@ Notion stays the editor (Tasks, Projects, Ship Log). The terminal is the view.
 cp .env.example .env.local
 ```
 
-| Variable | Where to get it |
-|----------|-----------------|
-| `NOTION_API_KEY` | [Notion Developer portal](https://www.notion.so/profile/integrations) → **Personal access tokens** → create token with **Notion API** capability |
+App runtime envs (only these two):
+
+| Variable | Required | Where to get it |
+|----------|----------|-----------------|
+| `NOTION_API_KEY` | Yes | [Notion Developer portal](https://www.notion.so/profile/integrations) → **Personal access tokens** → create token with **Notion API** capability |
+| `ACCESS_PASSWORD` | Optional | Shared password to gate the dashboard (set in Vercel / `.env.local`) |
+
+Optional infra (not GitHub): `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` via Vercel Marketplace Upstash Redis. Locally, unset Redis falls back to `.data/cache.json`.
+
+Do **not** add Linear or GitHub tokens to the app runtime. GitHub → Notion sync uses Action secrets in GitHub only.
 
 ```bash
 npm install
@@ -49,7 +69,7 @@ Open [http://localhost:3000](http://localhost:3000). Click **`[ sync ]`** to pul
 
 1. Import the repo in [Vercel](https://vercel.com/new).
 2. Add **Upstash Redis** from the Vercel Marketplace and link it to the project (sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`).
-3. Add `NOTION_API_KEY` in project environment variables.
+3. Add `NOTION_API_KEY` (and optionally `ACCESS_PASSWORD`) in project environment variables.
 4. Deploy.
 
 Without Redis env vars, the app falls back to the local file cache (works in dev, not on Vercel serverless).
@@ -63,7 +83,9 @@ Without Redis env vars, the app falls back to the local file cache (works in dev
 
 ## Ops rules (Company OS)
 
+- Notion owns work state; Cursor executes; GitHub reports PR state back; this terminal only renders Notion
 - Read-only mirror — does not write to Notion
+- App runtime: `NOTION_API_KEY` + optional `ACCESS_PASSWORD` only (no Linear / GitHub app envs)
 - Database IDs match `Interfaces-Company/docs/notion.md`
 - Replaces the Notion Focus page as the daily snapshot
 - Retired sources (Linear, Focus page slots, Work Queue, Resume, Cycles) are not used
