@@ -1,0 +1,29 @@
+src/lib/notion/client.ts
+  s_a29eba91cb0d43::t_949e65c91e0520 158-168
+src/types/ops.ts
+  s_a29eba91cb0d43::t_05dee366f37a47 76
+src/lib/ascii/render.ts
+  s_a29eba91cb0d43::t_b70a20a4e6d09a 167
+  s_a29eba91cb0d43::t_d7fb895e7fc169 52-70,78-83
+  s_a29eba91cb0d43::t_b282c09c7daaf4 71-77
+src/lib/config.ts
+  s_a29eba91cb0d43::t_91269485018374 18,30
+src/lib/sync/aggregate.ts
+  s_a29eba91cb0d43::t_948aa7b51f9bc9 2,6,15,39-42,57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7b9124d852d18b62dbe3d425434c4de313124587",
+  "prompts": {},
+  "sessions": {
+    "s_a29eba91cb0d43": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "978e2b84-b853-419c-9194-95c3b518a533",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
