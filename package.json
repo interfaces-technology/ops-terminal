@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:pr-to-notion": "node scripts/sync-pr-to-notion.mjs"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.0",
