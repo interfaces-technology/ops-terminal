@@ -1,0 +1,54 @@
+---
+description: Notion-task-driven Cursor workflow — source of truth, status updates, completion reports
+alwaysApply: true
+---
+
+# Notion work protocol
+
+Notion is the source of truth for work. Cursor executes; GitHub holds PRs; Ops Terminal only renders Notion.
+
+## Start
+
+1. Open the **Notion task URL** (required). Fetch the page; do not invent scope from chat alone.
+2. Treat the task’s **Agent prompt** as the source of truth for what to build. Use Goal / Acceptance criteria / Description as supporting context.
+3. Set Status → **In progress** when you begin. Fill **Repo** / **Branch** when known.
+4. Branch: `cursor/notion-ops-<task-slug>` (one PR per Notion task).
+
+## App runtime env (hard constraint)
+
+Ops Terminal app runtime may use **only**:
+
+- `NOTION_API_KEY`
+- `ACCESS_PASSWORD`
+
+Do **not** add GitHub tokens or other secrets to the Next.js / Vercel app. GitHub Action secrets stay in GitHub only. Optional Redis is infra, not a required app secret.
+
+## While working
+
+- Keep Notion in sync: short progress notes on the task (what shipped, what’s left).
+- Put the **Notion task URL in the PR body**.
+- Fill **PR** and **Repo** on the Notion task when the PR exists.
+
+## Status rules (code tasks)
+
+| Event | Notion Status |
+|-------|----------------|
+| Started | **In progress** |
+| PR opened | **Review** (if that option exists; otherwise leave **In progress** and note the PR) |
+| Merged / accepted | **Done** — only then |
+
+Never mark **Done** just because a PR is open. Docs-only or non-code tasks may go **Done** when acceptance criteria are met and no merge gate applies.
+
+## Completion report (required)
+
+When finishing a task (PR open or handoff), report **all** of these:
+
+```text
+Summary: <what shipped and why>
+Files changed: <paths>
+Tests: <ran / skipped + result>
+PR: <url or n/a>
+Next action: <merge / follow-up / blocked on X>
+```
+
+Also mirror the useful bits onto the Notion task (PR link, progress note, next action) so the terminal and humans stay aligned.
