@@ -1,0 +1,21 @@
+AGENTS.md
+  s_089a80e264b496::t_14ff95e9aacd59 6-9
+.cursor/rules/notion-work.mdc
+  s_089a80e264b496::t_a76b8e569aa86a 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7b3212e2be1a2a12236e091179e10314e3ffa30c",
+  "prompts": {},
+  "sessions": {
+    "s_089a80e264b496": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "aadc37c9-0deb-4e3f-90c5-f8f5d773e52f",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
