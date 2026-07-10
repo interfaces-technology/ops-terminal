@@ -15,7 +15,7 @@ export const NOTION_TASK_DATABASES = {
 } as const;
 
 /** Bump when snapshot shape or Notion sources change (invalidates Redis/file cache). */
-export const CACHE_KEY = "ops:snapshot:v11";
+export const CACHE_KEY = "ops:snapshot:v12";
 export const CACHE_PATH = ".data/cache.json";
 
 export const TERMINAL_USER = {
@@ -27,4 +27,5 @@ export const TERMINAL_USER = {
 export const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 export const TODAY_TASK_LIMIT = 12;
+export const REVIEW_QUEUE_TASK_LIMIT = 20;
 export const DOMAIN_TASK_SAMPLE = 3;

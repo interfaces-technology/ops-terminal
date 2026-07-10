@@ -73,6 +73,7 @@ export interface NotionShipLogEntry {
 export interface OpsSnapshot {
   syncedAt: string;
   today: NotionTask[];
+  reviewQueue: NotionTask[];
   horizon: NotionHorizonItem[];
   milestones: NotionMilestone[];
   notionProjects: NotionProject[];
