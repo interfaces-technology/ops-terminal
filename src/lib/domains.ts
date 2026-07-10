@@ -1,18 +1,18 @@
-import { findLinearProject, resolveProjectProgress } from "@/lib/sync/match";
-import type { LinearProject, LinearTeamStats, NotionProject, OpsSnapshot } from "@/types/ops";
+import type { NotionProject, NotionTask, OpsSnapshot } from "@/types/ops";
 
 export interface OpsDomain {
   id: string;
   label: string;
   notionTags: string[];
-  linearTeamKey: string | null;
+  taskSpace: NotionTask["space"] | null;
 }
 
 export const OPS_DOMAINS: OpsDomain[] = [
-  { id: "company", label: "Company", notionTags: ["company", "pipeline"], linearTeamKey: null },
-  { id: "labs", label: "Lab", notionTags: ["labs", "lab"], linearTeamKey: "LAB" },
-  { id: "play", label: "Play", notionTags: ["play"], linearTeamKey: "PLAY" },
-  { id: "workbench", label: "Workbench", notionTags: ["workbench"], linearTeamKey: "WOR" },
+  { id: "company", label: "Company", notionTags: ["company", "pipeline", "partnerships"], taskSpace: "company" },
+  { id: "studio", label: "Studio", notionTags: ["studio"], taskSpace: "studio" },
+  { id: "lab", label: "Lab", notionTags: ["lab", "labs"], taskSpace: "lab" },
+  { id: "play", label: "Play", notionTags: ["play"], taskSpace: "play" },
+  { id: "workbench", label: "Workbench", notionTags: ["workbench"], taskSpace: "workbench" },
 ];
 
 export type ProjectLifecycle = "active" | "completed" | "canceled";
@@ -23,12 +23,32 @@ export interface DomainProjectCounts {
   canceled: number;
 }
 
+export interface DomainTaskCounts {
+  open: number;
+  inProgress: number;
+}
+
+function normalizeTag(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
 export function notionProjectDomainId(project: NotionProject): string {
-  const tag = (project.product ?? project.area ?? "").trim().toLowerCase();
+  const tag = normalizeTag(project.product ?? project.area);
   if (!tag) return "company";
 
   const domain = OPS_DOMAINS.find((entry) => entry.notionTags.includes(tag));
   return domain?.id ?? "company";
+}
+
+export function taskDomainId(task: NotionTask): string {
+  const productTag = normalizeTag(task.product);
+  if (productTag) {
+    const byProduct = OPS_DOMAINS.find((entry) => entry.notionTags.includes(productTag));
+    if (byProduct) return byProduct.id;
+  }
+
+  const bySpace = OPS_DOMAINS.find((entry) => entry.taskSpace === task.space);
+  return bySpace?.id ?? "company";
 }
 
 export function notionProjectsForDomain(
@@ -38,39 +58,31 @@ export function notionProjectsForDomain(
   return projects.filter((project) => notionProjectDomainId(project) === domain.id);
 }
 
-export function teamStatsForDomain(
-  domain: OpsDomain,
-  byTeam: LinearTeamStats[],
-): LinearTeamStats | undefined {
-  if (!domain.linearTeamKey) return undefined;
-  return byTeam.find((team) => team.teamKey === domain.linearTeamKey);
-}
-
-export function linearProjectsForDomain(
-  domain: OpsDomain,
-  projects: LinearProject[],
-): LinearProject[] {
-  if (!domain.linearTeamKey) return [];
-  return projects.filter((project) => project.teamKey === domain.linearTeamKey);
-}
-
-export function isLinearProjectClaimed(
-  linearProject: LinearProject,
-  notionProjects: NotionProject[],
-): boolean {
-  return notionProjects.some((notionProject) => {
-    if (notionProject.linearUrl && notionProject.linearUrl === linearProject.url) return true;
-    return notionProject.name.toLowerCase() === linearProject.name.toLowerCase();
+export function activeProjectsForDomain(domain: OpsDomain, projects: NotionProject[]): NotionProject[] {
+  return notionProjectsForDomain(domain, projects).filter((project) => {
+    const phase = project.phase?.toLowerCase() ?? "";
+    const status = project.status?.toLowerCase() ?? "";
+    return phase === "active" || status === "active" || status === "in progress";
   });
 }
 
-export function linearOnlyProjectsForDomain(
-  domain: OpsDomain,
-  snapshot: OpsSnapshot,
-): LinearProject[] {
-  return linearProjectsForDomain(domain, snapshot.linear.projects).filter(
-    (project) => !isLinearProjectClaimed(project, snapshot.notionProjects),
-  );
+export function tasksForDomain(domain: OpsDomain, tasks: NotionTask[]): NotionTask[] {
+  return tasks.filter((task) => taskDomainId(task) === domain.id);
+}
+
+export function domainTaskCounts(domain: OpsDomain, tasks: NotionTask[]): DomainTaskCounts {
+  const domainTasks = tasksForDomain(domain, tasks);
+  let open = 0;
+  let inProgress = 0;
+
+  for (const task of domainTasks) {
+    const status = task.status.toLowerCase();
+    if (status === "done" || status === "archived") continue;
+    open++;
+    if (status === "in progress") inProgress++;
+  }
+
+  return { open, inProgress };
 }
 
 export function classifyNotionProject(project: NotionProject): ProjectLifecycle {
@@ -82,57 +94,33 @@ export function classifyNotionProject(project: NotionProject): ProjectLifecycle 
   return "active";
 }
 
-export function classifyLinearProject(project: LinearProject): ProjectLifecycle {
-  const status = project.status.toLowerCase();
-  if (status.includes("cancel")) return "canceled";
-  if (status.includes("complete") || status.includes("done")) return "completed";
-  return "active";
-}
-
 export function domainProjectCounts(
   domain: OpsDomain,
   snapshot: OpsSnapshot,
 ): DomainProjectCounts {
   const counts: DomainProjectCounts = { active: 0, completed: 0, canceled: 0 };
-  const notionProjects = notionProjectsForDomain(domain, snapshot.notionProjects);
 
-  for (const notionProject of notionProjects) {
-    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
-    const lifecycle = linearProject
-      ? classifyLinearProject(linearProject)
-      : classifyNotionProject(notionProject);
-    counts[lifecycle]++;
-  }
-
-  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
-    counts[classifyLinearProject(linearProject)]++;
+  for (const project of notionProjectsForDomain(domain, snapshot.notionProjects)) {
+    counts[classifyNotionProject(project)]++;
   }
 
   return counts;
 }
 
-/** Average combined Notion + Linear progress across all projects listed in a domain. */
 export function domainProgressRatio(domain: OpsDomain, snapshot: OpsSnapshot): number {
   const progresses: number[] = [];
 
-  for (const notionProject of notionProjectsForDomain(domain, snapshot.notionProjects)) {
-    const linearProject = findLinearProject(notionProject, snapshot.linear.projects);
-    progresses.push(resolveProjectProgress(notionProject, linearProject).ratio);
-  }
-
-  for (const linearProject of linearOnlyProjectsForDomain(domain, snapshot)) {
-    progresses.push(resolveProjectProgress(null, linearProject).ratio);
+  for (const project of activeProjectsForDomain(domain, snapshot.notionProjects)) {
+    if (project.progress != null) progresses.push(project.progress / 100);
   }
 
   if (progresses.length === 0) return 0;
   return progresses.reduce((sum, ratio) => sum + ratio, 0) / progresses.length;
 }
 
-/** Strip a leading domain label/tag from a project name for display under that domain. */
 export function displayProjectName(domain: OpsDomain, rawName: string): string {
   const name = rawName.trim();
   const prefixes = new Set<string>([domain.label, ...domain.notionTags]);
-  if (domain.linearTeamKey) prefixes.add(domain.linearTeamKey);
 
   for (const prefix of prefixes) {
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -142,4 +130,11 @@ export function displayProjectName(domain: OpsDomain, rawName: string): string {
   }
 
   return name;
+}
+
+export function openTasksForDomain(domain: OpsDomain, tasks: NotionTask[]): NotionTask[] {
+  return tasksForDomain(domain, tasks).filter((task) => {
+    const status = task.status.toLowerCase();
+    return status !== "done" && status !== "archived";
+  });
 }

@@ -20,8 +20,8 @@ function emptyDashboard(message: string): TerminalDashboard {
         message,
         "",
         "1. Copy .env.example → .env.local",
-        "2. Add LINEAR_API_KEY and NOTION_API_KEY",
-        "3. Add API keys, then refresh — sync runs automatically",
+        "2. Add NOTION_API_KEY",
+        "3. Add the key, then refresh — sync runs automatically",
         "",
       ],
     },
@@ -43,8 +43,8 @@ export default async function Home() {
     const snapshot = await getOpsState(false);
     warnings = snapshot.errors;
     dashboard = renderDashboardSections(snapshot);
-    if (snapshot.errors.length > 0 && snapshot.linear.issues.length === 0) {
-      setupHint = "Partial sync — check API keys in .env.local";
+    if (snapshot.errors.length > 0 && snapshot.notionProjects.length === 0) {
+      setupHint = "Partial sync — check NOTION_API_KEY in .env.local";
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load";

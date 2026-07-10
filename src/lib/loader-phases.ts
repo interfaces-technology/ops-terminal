@@ -2,28 +2,26 @@ export const LOADER_MIN_MS = 7_500;
 export const LOADER_BOOT_MS = 2_500;
 
 export const BOOT_LINES = [
-  "Initializing ops terminal v0.2.0",
+  "Initializing ops terminal v0.4.0",
   "Loading sync modules...",
   "Establishing secure connections...",
 ] as const;
 
 export const STATUS_MESSAGES = [
-  "Connecting to Linear API...",
-  "Fetching LAB · PLAY · WOR issues...",
-  "Syncing Notion Projects & Horizon...",
-  "Aggregating unified ops snapshot...",
-  "Rendering dashboard...",
+  "Connecting to Notion API...",
+  "Syncing Horizon & Milestones...",
+  "Pulling Tasks across all spaces...",
+  "Syncing Projects & Ship Log...",
+  "Rendering company snapshot...",
 ] as const;
 
 export const SYNC_STEPS = [
-  { label: "Linear — connecting to API", weight: 0.08 },
-  { label: "Linear — fetching issues (LAB, PLAY, WOR)", weight: 0.22 },
-  { label: "Linear — fetching projects", weight: 0.12 },
-  { label: "Linear — fetching milestones", weight: 0.08 },
-  { label: "Notion — reading Focus notes", weight: 0.06 },
-  { label: "Notion — syncing Projects, Milestones & Sprints", weight: 0.24 },
-  { label: "Notion — syncing Ship Log", weight: 0.1 },
-  { label: "Merging projects by domain", weight: 0.12 },
+  { label: "Notion — connecting to API", weight: 0.1 },
+  { label: "Notion — syncing Horizon & Milestones", weight: 0.16 },
+  { label: "Notion — syncing Tasks (5 spaces)", weight: 0.28 },
+  { label: "Notion — syncing Projects", weight: 0.16 },
+  { label: "Notion — syncing Ship Log", weight: 0.12 },
+  { label: "Grouping by domain", weight: 0.1 },
   { label: "Rendering dashboard", weight: 0.08 },
 ] as const;
 
