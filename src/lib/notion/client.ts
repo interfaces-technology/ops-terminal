@@ -119,6 +119,13 @@ function mapTaskPage(page: NotionPage, space: TaskSpace): NotionTask {
     priority: getSelect(props, "Priority"),
     repo: getUrl(props, "Repo"),
     pr: getUrl(props, "PR"),
+    prStatus: getSelect(props, "PR status"),
+    branch: getRichText(props, "Branch"),
+    implementationSummary: getRichText(props, "Implementation summary"),
+    testResults: getRichText(props, "Test results"),
+    nextAction: getRichText(props, "Next action"),
+    lastSyncedAt: getDate(props, "Last synced at"),
+    agentPrompt: getRichText(props, "Agent prompt"),
     space,
   };
 }
@@ -144,7 +151,8 @@ export function isOpenTask(task: NotionTask): boolean {
 }
 
 export function isInProgressTask(task: NotionTask): boolean {
-  return task.status.toLowerCase() === "in progress";
+  const status = task.status.toLowerCase();
+  return status === "in progress" || status === "review";
 }
 
 async function fetchProjects(): Promise<NotionProject[]> {

@@ -31,11 +31,20 @@ function formatToday(snapshot: OpsSnapshot): TerminalSection {
     };
   }
 
-  const lines = snapshot.today.map((task) => {
+  const lines: LinkedLine[] = [];
+
+  for (const task of snapshot.today) {
     const type = task.type ? ` · ${task.type}` : "";
     const product = task.product ?? task.space;
-    return linked(`[${product}${type}] ${task.name}`, task.url);
-  });
+    lines.push(linked(`[${product}${type}] ${task.name}`, task.url));
+
+    if (task.pr || task.prStatus || task.branch) {
+      const bits = ["PR"];
+      if (task.prStatus) bits.push(task.prStatus);
+      if (task.branch) bits.push(task.branch);
+      lines.push(linked(`  ${bits.join(" · ")}`, task.pr ?? task.repo));
+    }
+  }
 
   return { title: "TODAY · in progress", lines };
 }
