@@ -1,8 +1,9 @@
 import { readCache, writeCache } from "@/lib/cache/store";
-import { TODAY_TASK_LIMIT } from "@/lib/config";
+import { REVIEW_QUEUE_TASK_LIMIT, TODAY_TASK_LIMIT } from "@/lib/config";
 import {
   fetchNotionData,
   isInProgressTask,
+  isReviewQueueTask,
   sortTasksForToday,
 } from "@/lib/notion/client";
 import type { OpsSnapshot } from "@/types/ops";
@@ -11,6 +12,7 @@ function emptySnapshot(): OpsSnapshot {
   return {
     syncedAt: new Date().toISOString(),
     today: [],
+    reviewQueue: [],
     horizon: [],
     milestones: [],
     notionProjects: [],
@@ -34,6 +36,10 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
       0,
       TODAY_TASK_LIMIT,
     );
+    snapshot.reviewQueue = sortTasksForToday(data.tasks.filter(isReviewQueueTask)).slice(
+      0,
+      REVIEW_QUEUE_TASK_LIMIT,
+    );
     for (const message of data.errors) {
       snapshot.errors.push(`Notion: ${message}`);
     }
@@ -48,6 +54,7 @@ export async function syncOpsState(): Promise<OpsSnapshot> {
 function isValidSnapshot(snapshot: OpsSnapshot): boolean {
   return (
     Array.isArray(snapshot.today) &&
+    Array.isArray(snapshot.reviewQueue) &&
     Array.isArray(snapshot.horizon) &&
     Array.isArray(snapshot.milestones) &&
     Array.isArray(snapshot.notionProjects) &&

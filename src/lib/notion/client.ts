@@ -155,6 +155,17 @@ export function isInProgressTask(task: NotionTask): boolean {
   return status === "in progress" || status === "review";
 }
 
+const REVIEW_PR_STATUSES = new Set(["open", "draft", "ready"]);
+
+/** Notion-only review queue: PR set, Status Review, or active PR status. */
+export function isReviewQueueTask(task: NotionTask): boolean {
+  if (task.pr) return true;
+  const status = task.status.toLowerCase();
+  if (status === "review" || status === "in review") return true;
+  const prStatus = task.prStatus?.toLowerCase();
+  return prStatus != null && REVIEW_PR_STATUSES.has(prStatus);
+}
+
 async function fetchProjects(): Promise<NotionProject[]> {
   const pages = await notionQuery(NOTION_DATABASES.projects);
 

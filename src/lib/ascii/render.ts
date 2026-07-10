@@ -49,6 +49,38 @@ function formatToday(snapshot: OpsSnapshot): TerminalSection {
   return { title: "TODAY · in progress", lines };
 }
 
+function formatReviewQueue(snapshot: OpsSnapshot): TerminalSection {
+  if (snapshot.reviewQueue.length === 0) {
+    return {
+      title: "REVIEW QUEUE",
+      lines: [
+        {
+          text: "No tasks awaiting review — set PR, Status Review, or PR status Open/Draft/Ready in Notion",
+        },
+      ],
+    };
+  }
+
+  const lines: LinkedLine[] = [];
+
+  for (const task of snapshot.reviewQueue) {
+    const type = task.type ? ` · ${task.type}` : "";
+    const product = task.product ?? task.space;
+    lines.push(linked(`[${product}${type}] ${task.name}`, task.url));
+
+    if (task.pr || task.prStatus || task.branch || task.repo) {
+      const bits: string[] = [];
+      if (task.prStatus) bits.push(task.prStatus);
+      if (task.branch) bits.push(task.branch);
+      if (task.pr) bits.push("PR");
+      else if (task.repo) bits.push("repo");
+      lines.push(linked(`  ${bits.join(" · ")}`, task.pr ?? task.repo));
+    }
+  }
+
+  return { title: "REVIEW QUEUE", lines };
+}
+
 function milestonesForHorizon(snapshot: OpsSnapshot, horizonUrl: string | null): string[] {
   if (!horizonUrl) {
     return snapshot.milestones.map((milestone) => milestone.name);
@@ -132,6 +164,7 @@ function lineDisplayText(line: LinkedLine): string {
 export function renderDashboardSections(snapshot: OpsSnapshot): TerminalDashboard {
   const sections: TerminalSection[] = [
     formatToday(snapshot),
+    formatReviewQueue(snapshot),
     formatHorizon(snapshot),
     formatProjects(snapshot),
     formatShipLog(snapshot),
