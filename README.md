@@ -58,6 +58,18 @@ Optional infra (not GitHub): `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKE
 
 Do **not** add Linear or GitHub tokens to the app runtime. GitHub → Notion sync uses Action secrets in GitHub only.
 
+### GitHub Action: PR → Notion sync
+
+Workflow [`.github/workflows/sync-pr-to-notion.yml`](.github/workflows/sync-pr-to-notion.yml) runs on PR `opened` / `edited` / `synchronize` / `ready_for_review` / `closed` and patches linked Notion tasks (script: [`scripts/sync-pr-to-notion.mjs`](scripts/sync-pr-to-notion.mjs)).
+
+Configure **one** repository secret (Actions → Secrets — not a Vercel / app env):
+
+| Secret | Required for | Notes |
+|--------|----------------|-------|
+| `NOTION_API_KEY` | PR → Notion sync Action | Same Notion token as the app; stored in GitHub Actions only |
+
+Link resolution: Notion task URL in the PR body (preferred), else match task `PR` / unambiguous `Repo` fields.
+
 ```bash
 npm install
 npm run dev
