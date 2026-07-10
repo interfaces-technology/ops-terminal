@@ -1,0 +1,27 @@
+README.md
+  s_e1aab309ab5400::t_cfd9e2b2d77bd0 61-72
+package.json
+  s_e1aab309ab5400::t_305ff16c6009b7 9-10
+scripts/sync-pr-to-notion.mjs
+  s_e1aab309ab5400::t_8b4a5f88326fe2 1-351
+.env.example
+  s_e1aab309ab5400::t_a1d6eb47eb4b9d 4
+.github/workflows/sync-pr-to-notion.yml
+  s_e1aab309ab5400::t_ef625866a0afc9 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "62a9be2cfbd9039254a1e13e68604a85d812db9f",
+  "prompts": {},
+  "sessions": {
+    "s_e1aab309ab5400": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a2d7dce3-674a-4c61-a503-402979fbc816",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
