@@ -1,0 +1,25 @@
+.env.example
+  s_145af2d1bd444d::t_18a55fea68b918 1,6,9-10
+src/app/page.tsx
+  s_145af2d1bd444d::t_376f321be154c4 18,23-24
+src/lib/loader-phases.ts
+  s_145af2d1bd444d::t_29498d2992ab85 6-7,11,15
+README.md
+  s_145af2d1bd444d::t_0d8cc7047346e6 5-17,50-59,72,86,88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b57a1c285f8e96866e17dd82462d3fdbecfb5889",
+  "prompts": {},
+  "sessions": {
+    "s_145af2d1bd444d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "954e5273-cc80-487f-82c1-bcc2d3ac7db8",
+        "model": "default"
+      },
+      "human_author": "Hamza <hshaebi.11@gmail.com>"
+    }
+  }
+}
