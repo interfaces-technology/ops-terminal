@@ -15,7 +15,7 @@ export const NOTION_TASK_DATABASES = {
 } as const;
 
 /** Bump when snapshot shape or Notion sources change (invalidates Redis/file cache). */
-export const CACHE_KEY = "ops:snapshot:v10";
+export const CACHE_KEY = "ops:snapshot:v11";
 export const CACHE_PATH = ".data/cache.json";
 
 export const TERMINAL_USER = {

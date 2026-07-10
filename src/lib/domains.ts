@@ -79,7 +79,7 @@ export function domainTaskCounts(domain: OpsDomain, tasks: NotionTask[]): Domain
     const status = task.status.toLowerCase();
     if (status === "done" || status === "archived") continue;
     open++;
-    if (status === "in progress") inProgress++;
+    if (status === "in progress" || status === "review") inProgress++;
   }
 
   return { open, inProgress };

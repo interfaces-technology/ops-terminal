@@ -42,7 +42,10 @@ function formatNotionProjectLine(project: NotionProject, domain: OpsDomain): Lin
 
 function formatOpenTaskSample(domain: OpsDomain, snapshot: OpsSnapshot): LinkedLine[] {
   const tasks = openTasksForDomain(domain, snapshot.tasks)
-    .filter((task) => task.status.toLowerCase() === "in progress")
+    .filter((task) => {
+      const status = task.status.toLowerCase();
+      return status === "in progress" || status === "review";
+    })
     .slice(0, DOMAIN_TASK_SAMPLE);
 
   if (tasks.length === 0) return [];
@@ -50,7 +53,8 @@ function formatOpenTaskSample(domain: OpsDomain, snapshot: OpsSnapshot): LinkedL
   return tasks.map((task) => {
     const type = task.type ? ` · ${task.type}` : "";
     const product = task.product ?? domain.label;
-    return linked(`    · [${product}${type}] ${task.name}`, task.url);
+    const prHint = task.prStatus ? ` · PR ${task.prStatus}` : task.pr ? " · PR" : "";
+    return linked(`    · [${product}${type}] ${task.name}${prHint}`, task.pr ?? task.url);
   });
 }
 

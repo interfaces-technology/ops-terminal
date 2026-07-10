@@ -18,6 +18,13 @@ export interface NotionTask {
   priority: string | null;
   repo: string | null;
   pr: string | null;
+  prStatus: string | null;
+  branch: string | null;
+  implementationSummary: string | null;
+  testResults: string | null;
+  nextAction: string | null;
+  lastSyncedAt: string | null;
+  agentPrompt: string | null;
   space: TaskSpace;
 }
 
